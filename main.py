@@ -1,20 +1,20 @@
 from parsers import TipsterParser
 
-import os
 import utils
+import es_helpers
 
 if __name__ == "__main__":
+    index = 'tipster'
+
+    es = es_helpers.connect_elasticsearch()
+    es_helpers.create_index(es, index)
+
     leaves = utils.get_leaf_directories('tipster/corpora_unzipped')
-    output_base = 'docs'
 
     for leaf in leaves:
         print(f'DEBUG: Processing leaf directory: {leaf}')
         parser = TipsterParser(leaf)
         parsed_documents = parser.process_all_documents()
 
-        output_dir = utils.create_output_directory(leaf, output_base)
+        es_helpers.index_documents(es, index, parsed_documents)
 
-        for doc in parsed_documents:
-            output_file_path = os.path.join(output_dir, f"{doc['DOCNO']}.txt")
-            with open(output_file_path, 'w', encoding='utf-8') as f:
-                f.write(f"TEXT:\n{doc['TEXT']}")
