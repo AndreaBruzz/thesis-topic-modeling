@@ -1,45 +1,210 @@
 from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
+from nltk.corpus import stopwords
+
+import time
+import sys
 
 def connect_elasticsearch(host='localhost', port=9200):
-    es = Elasticsearch(hosts=[{'host': host, 'port': port, 'scheme': 'http'}])
-    if es.ping():
-        print('Connected to Elasticsearch')
-    else:
-        print('Could not connect to Elasticsearch')
+    connected = False
+
+    while not connected:
+        es = Elasticsearch(hosts=[{'host': host, 'port': port, 'scheme': 'http'}])
+        if es.ping():
+            connected = True
+            print('DEBUG: Connected to Elasticsearch')
+        else:
+            print('ERROR: Could not connect to Elasticsearch... retrying in 3 seconds')
+            time.sleep(3)
+
     return es
 
+def delete_index(es, index):
+    try:
+        es.indices.delete(index=index)
+    except Exception as e:
+        print(f'ERROR: An error occurred while deleting index {index}: {e}')
+
 def create_index(es, index, settings=None):
+    stoplist = load_stoplist('storage/tipster/inquery.stoplist')
+
     if settings is None:
         settings = {
             "settings": {
                 "number_of_shards": 2,
-                "number_of_replicas": 0
+                "number_of_replicas": 0,
+                "analysis": {
+                    "filter": {
+                        "english_stop": {
+                            "type": "stop",
+                            "stopwords": ["_english_", *stoplist]
+                        },
+                        "english_stemmer": {
+                            "type": "stemmer",
+                            "language": "english"
+                        },
+                        "english_possessive_stemmer": {
+                            "type": "stemmer",
+                            "language": "possessive_english"
+                        },
+                        "light_english_stemmer": {
+                            "type": "stemmer",
+                            "name": "light_english"
+                        },
+                        "minimal_english_stemmer": {
+                            "type": "stemmer",
+                            "name": "minimal_english"
+                        }
+                    },
+                    "analyzer": {
+                        "rebuilt_english": {
+                            "tokenizer": "standard",
+                            "filter": [
+                                "english_possessive_stemmer",
+                                "lowercase",
+                                "english_stop",
+                                "english_stemmer"
+                            ]
+                        },
+                        "light_english": {
+                            "type": "custom",
+                            "tokenizer": "standard",
+                            "filter": ["lowercase", "light_english_stemmer", "custom_stopwords"]
+                        },
+                        "minimal_english": {
+                            "type": "custom",
+                            "tokenizer": "standard",
+                            "filter": ["lowercase", "minimal_english_stemmer", "custom_stopwords"]
+                        }
+                    }
+                },
             },
             "mappings": {
-                "properties": {
-                    "DOCNO": {
-                        "type": "keyword"
-                    },
-                    "TEXT": {
-                        "type": "text"
+                    "properties": {
+                        "DOCNO": {"type": "keyword"},
+                        "TEXT": {"type": "text", "analyzer": "rebuilt_english"},
+                        "TITLE": {"type": "text", "analyzer": "rebuilt_english"}
                     }
                 }
             }
-        }
 
     try:
         if not es.indices.exists(index=index):
             es.indices.create(index=index, settings=settings["settings"], mappings=settings["mappings"])
             print(f'DEBUG: Created Index: {index}')
         else:
-            print(f'Index {index} already exists.')
+            print(f'DEBUG: Index {index} already exists.')
     except Exception as ex:
-        print(f'Error creating index: {str(ex)}')
+        print(f'ERROR: An error occurred while creating index: {str(ex)}')
+        sys.exit()
 
 def index_documents(es, index, documents):
     for doc in documents:
         try:
-            es.index(index=index, id=doc['DOCNO'], document=doc)
+            es.index(index=index, id=doc['DOCNO'], document={
+                'DOCNO': doc['DOCNO'],
+                'TEXT': doc['TEXT'],
+                'TITLE': doc.get('TITLE', None)
+            })
             print(f"DEBUG: Document {doc['DOCNO']} indexed")
         except Exception as ex:
-            print(f"Error indexing document {doc['DOCNO']}: {str(ex)}")
+            print(f"ERROR: An error occurred while indexing document {doc['DOCNO']}: {str(ex)}")
+
+def bulk_index_documents(es, index, documents):
+    actions = [
+        {
+            "_index": index,
+            "_id": doc['DOCNO'],
+            "_source": {
+                'DOCNO': doc['DOCNO'],
+                'TEXT': doc['TEXT'],
+                'TITLE': doc.get('TITLE', None)
+            }
+        }
+        for doc in documents
+    ]
+
+    try:
+        success, failed = bulk(es, actions)
+        print(f"DEBUG: Successfully indexed {success} documents, {failed} failed")
+    except Exception as ex:
+        print(f"ERROR: An error occurred while during bulk indexing: {str(ex)}")
+        print(f"DEBUG: Indexing docs one by one...")
+        index_documents(es, index, documents)
+        print('DEBUG: Done!')
+
+def search(es, index, query):
+    res = es.search(index=index, body={
+        "query": {
+            "multi_match": {
+                "query": query['TITLE'],
+                "fields": ["TITLE^2", "TEXT"],
+                "operator": "or",
+            },
+        },
+        "size": 100,
+    })
+
+    return res
+
+def get_term_vectors(es, index, doc_id, field='TEXT'):
+    try:
+        term_vector = es.termvectors(
+            index=index,
+            id=doc_id,
+            fields=[field],
+            term_statistics=True,
+            field_statistics=True,
+            offsets=False,
+            positions=False,
+            payloads=False
+        )
+
+        terms = term_vector['term_vectors'][field]['terms']
+
+        return terms
+    except Exception as e:
+        print(f"ERROR: An error occurred while extracting term vector for doc {doc_id}: {str(e)}")
+
+        return None
+
+def extract_term_vectors_from_documents(es, index, document_ids):
+    all_term_vectors = {}
+
+    for doc_id in document_ids:
+        term_vector = get_term_vectors(es, index, doc_id)
+        if term_vector:
+            all_term_vectors[doc_id] = term_vector
+
+    return all_term_vectors
+
+def check_relevant_docs_indexed(es, index, qrels, query_id):
+    relevant_docs = qrels.get(query_id, [])
+    if not relevant_docs:
+        print(f"No relevant document retrieved for Query {query_id}")
+        return
+
+    total_relevant = len(relevant_docs)
+    indexed_count = 0
+
+    for doc_id in relevant_docs:
+        if es.exists(index=index, id=doc_id):
+            print(f"Document {doc_id} is indexed.")
+            indexed_count += 1
+        else:
+            print(f"Document {doc_id} is NOT indexed.")
+
+    print(f"Relevant documents for Query {query_id}: {total_relevant}")
+    print(f"Indexed relevant documents {indexed_count}")
+    print(f"Not indexed relevant documents {total_relevant - indexed_count}")
+
+def get_stopwords():
+    nltk_stopwords = set(stopwords.words('english'))
+    custom_stoplist = load_stoplist('storage/tipster/inquery.stoplist')
+
+    return nltk_stopwords.union(custom_stoplist)
+
+def load_stoplist(file_path):
+    with open(file_path, 'r') as f:
+        stopwords = [line.strip() for line in f.readlines()]
+    return stopwords
