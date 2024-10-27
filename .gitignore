@@ -1,6 +1,5 @@
 *.txt
-/docs
-/tipster
+/storage
 
 #########################################################################
 #                     DEFAULT GITIGNORE FOR PYTHON                      #
