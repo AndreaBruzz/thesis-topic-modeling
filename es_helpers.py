@@ -35,7 +35,7 @@ def create_index(es, index, settings=None):
                 "number_of_replicas": 0,
                 "analysis": {
                     "filter": {
-                        "english_stop": {
+                        "custom_stop": {
                             "type": "stop",
                             "stopwords": ["_english_", *stoplist]
                         },
@@ -62,19 +62,19 @@ def create_index(es, index, settings=None):
                             "filter": [
                                 "english_possessive_stemmer",
                                 "lowercase",
-                                "english_stop",
+                                "custom_stop",
                                 "english_stemmer"
                             ]
                         },
                         "light_english": {
                             "type": "custom",
                             "tokenizer": "standard",
-                            "filter": ["lowercase", "light_english_stemmer", "custom_stopwords"]
+                            "filter": ["lowercase", "light_english_stemmer", "custom_stop"]
                         },
                         "minimal_english": {
                             "type": "custom",
                             "tokenizer": "standard",
-                            "filter": ["lowercase", "minimal_english_stemmer", "custom_stopwords"]
+                            "filter": ["lowercase", "minimal_english_stemmer", "custom_stop "]
                         }
                     }
                 },
