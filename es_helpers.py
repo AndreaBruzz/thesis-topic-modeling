@@ -74,7 +74,7 @@ def create_index(es, index, settings=None):
                         "minimal_english": {
                             "type": "custom",
                             "tokenizer": "standard",
-                            "filter": ["lowercase", "minimal_english_stemmer", "custom_stop "]
+                            "filter": ["lowercase", "minimal_english_stemmer", "custom_stop"]
                         }
                     }
                 },
