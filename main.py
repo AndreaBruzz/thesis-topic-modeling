@@ -46,6 +46,7 @@ def main():
 
             es_helpers.bulk_index_documents(es, index, parsed_documents)
 
+            parser.save_stats()
     elif args.delete_index:
         print('Can\'t delete index without calling the indexing again')
         sys.exit()
