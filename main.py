@@ -6,29 +6,9 @@ import random
 import sys
 import utils
 
-def select_index():
-    indexes = {
-        1:'tipster_45_lgt', # LIGHT ENGLISH DISKS 4 AND 5
-        2:'tipster_45_min', # MINIMAL ENGLISH DISKS 4 AND 5
-        3:'tipster_45_reb', # REBUILT ENGLISH DISKS 4 AND 5
-        4:'tipster_lgt', # LIGHT ENGLISH
-        5:'tipster_min', # MINIMAL ENGLISH
-    }
-
-    for key, val in indexes.items():
-        print(f'{key} - {val}')
-
-    try:
-        index = int(input('Select index: '))
-    except Exception:
-        index = 3
-
-    return  indexes.get(index)
-
 def main():
-    es, args = utils.setup()
-
-    index = select_index()
+    index = utils.select_index()
+    es, args = utils.setup(index)
 
     if args.index:
         if args.delete_index:
@@ -53,10 +33,10 @@ def main():
 
     if args.evaluate:
         utils.evaluate(es, index)
+        utils.run_trec_eval(index)
 
     query_parser = QueryParser('storage/queries/robust04.topics')
     queries = query_parser.parse_queries()
-
     query = random.choice(list(queries.values()))
 
     if args.verbose:
@@ -66,7 +46,12 @@ def main():
             print(f'{key}: {val}')
         input('Press enter to continue')
 
-    res = es_helpers.search(es, index, query)
+    if args.simulate:
+        # Qui prendo solo documenti rilevanti (70%)
+        res = utils.simulate_search(es, index, query)
+    else:
+        res = es_helpers.search(es, index, query)
+
     documents = [hit["_source"]["TEXT"] for hit in res["hits"]["hits"]]
     document_ids = [hit['_id'] for hit in res['hits']['hits']]
 
