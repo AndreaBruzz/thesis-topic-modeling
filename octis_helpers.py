@@ -7,6 +7,7 @@ from octis.preprocessing.preprocessing import Preprocessing
 import string
 import es_helpers
 import os
+import pandas as pd
 
 def create_dataset(documents, dataset_folder='storage/octis/dataset'):
     os.makedirs(dataset_folder, exist_ok=True)
@@ -51,6 +52,17 @@ def train_nmf_model(topics=10, topwords=5):
     nmf_model = NMF(num_topics=topics, random_state=754)
     nmf_output = nmf_model.train_model(dataset, top_words=topwords)
 
+    for k, v in nmf_output.items():
+        print(f"{k}:")
+        print(v)
+        print()
+
+    topic_word_matrix = nmf_output['topic-word-matrix']
+
+    print("Topic Vectors (H):")
+    for i, topic_vec in enumerate(topic_word_matrix):
+        print(f"Topic {i}: {topic_vec}")
+    
     evaluate_model(nmf_output, dataset)
 
     return nmf_output
