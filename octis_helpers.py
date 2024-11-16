@@ -57,12 +57,6 @@ def train_nmf_model(topics=10, topwords=5):
         print(v)
         print()
 
-    topic_word_matrix = nmf_output['topic-word-matrix']
-
-    print("Topic Vectors (H):")
-    for i, topic_vec in enumerate(topic_word_matrix):
-        print(f"Topic {i}: {topic_vec}")
-    
     evaluate_model(nmf_output, dataset)
 
     return nmf_output
@@ -80,3 +74,12 @@ def evaluate_model(nmf_output, dataset, topwords=5):
     diversity_metric = TopicDiversity(topk=topwords)
     diversity_score = diversity_metric.score(nmf_output)
     print(f"Diversity Score: {diversity_score}")
+
+def get_topic_vectors(nmf_output):
+    topic_word_matrix = nmf_output['topic-word-matrix']
+    topic_vectors = []
+
+    for i, topic_vec in enumerate(topic_word_matrix):
+        topic_vectors.append(topic_vec)
+    
+    return topic_vectors

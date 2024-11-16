@@ -78,8 +78,12 @@ def main():
         input('Press enter to continue')
 
     octis_helpers.create_dataset(documents)
-    topics = octis_helpers.train_nmf_model()
-    octis_helpers.display_topics(topics)
+    nmf_output = octis_helpers.train_nmf_model()
+    octis_helpers.display_topics(nmf_output)
+    topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
+
+    for vector in topic_vectors:
+        print(vector)
 
 if __name__ == "__main__":
     main()
