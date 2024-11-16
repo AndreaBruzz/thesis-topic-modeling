@@ -10,19 +10,13 @@ import random
 import subprocess
 import sys
 
-def setup(index):
+def setup():
     random.seed(a=754)
 
     try:
         nltk.data.find('corpora/stopwords')
     except LookupError:
         nltk.download('stopwords', quiet=True)
-
-    try:
-        os.remove("trec_eval/submition.txt")
-        os.remove(f'storage/eval/eval_{index}.txt')
-    except:
-        pass
 
     es = es_helpers.connect_elasticsearch()
 
@@ -103,16 +97,22 @@ def process_term_vectors(term_vectors):
 
     return terms_matrix_df
 
-def simulate_search(es, index, query):
+def simulate_search(es, index, query, subset_size):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
     qrels = qrels_parser.parse_qrels()
 
     document_ids = qrels[query['NUM']]
-    document_ids = sample(document_ids, int(len(document_ids) * 0.7))
+
+    document_ids = sample(document_ids, int(len(document_ids) * subset_size))
 
     return es_helpers.search_documents_by_ids(es, index, document_ids)
 
 def run_trec_eval(index):
+    try:
+        os.remove(f'storage/eval/eval_{index}.txt')
+    except:
+        pass
+
     os.chdir('trec_eval')
 
     command = ['./trec_eval', '../storage/queries/robust04.qrels', 'submition.txt']
@@ -124,7 +124,7 @@ def run_trec_eval(index):
         print('Errore durante l\'esecuzione di trec_eval:')
         print(result.stderr)
     else:
-        print('Valutazione completata con successo. Output salvato in eval.txt.')
+        print(f'Valutazione completata con successo. Output salvato in eval/eval_{index}.txt')
 
     os.chdir('..')
 

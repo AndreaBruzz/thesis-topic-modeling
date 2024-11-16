@@ -28,10 +28,12 @@ def delete_index(es, index):
     except Exception as e:
         print(f'ERROR: An error occurred while deleting index {index}: {e}')
 
-def create_index(es, index):
-    stoplist = load_stoplist('storage/tipster/inquery.stoplist')
+def create_index(es, index, delete = False):
+    if delete:
+        print(f'Deleting index: {index}')
+        delete_index(es, index)
 
-    settings = get_index_configuration(index, stoplist)
+    settings = get_index_configuration(index)
 
     try:
         if not es.indices.exists(index=index):
@@ -135,11 +137,11 @@ def search(es, index, query, evaluate=False):
                     "operator": "or",
                 },
             },
-            "size": 25,
+            "size": 75,
         })
 
     if evaluate:
-        with open('trec_eval/submition.txt', 'a') as f:
+        with open('trec_eval/submition.txt', 'w') as f:
             for rank, hit in enumerate(res['hits']['hits'], start=1):
                 doc_id = hit['_id']
                 score = hit['_score']
@@ -216,7 +218,8 @@ def search_documents_by_ids(es, index, ids):
             "ids": {
                 "values": ids
             }
-        }
+        },
+        "size" : len(ids)
     })
 
     return res
@@ -243,7 +246,9 @@ def process_text(text, max_tokens=150000):
 
     return " ".join(processed_texts)
 
-def get_index_configuration(index_name, stoplist):
+def get_index_configuration(index_name):
+    stoplist = load_stoplist('storage/tipster/inquery.stoplist')
+
     configurations = {
         'tipster_kstem_customstop': {
             "settings": {

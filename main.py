@@ -7,15 +7,11 @@ import sys
 import utils
 
 def main():
+    es, args = utils.setup()
     index = utils.select_index()
-    es, args = utils.setup(index)
 
     if args.index:
-        if args.delete_index:
-            print(f'Deleting index: {index}')
-            es_helpers.delete_index(es, index)
-
-        es_helpers.create_index(es, index)
+        es_helpers.create_index(es, index, args.delete_index)
 
         leaves = utils.get_leaf_directories('storage/tipster/corpora_unzipped')
 
@@ -25,8 +21,6 @@ def main():
             parsed_documents = parser.process_all_documents()
 
             es_helpers.bulk_index_documents(es, index, parsed_documents)
-
-            parser.save_stats()
     elif args.delete_index:
         print('Can\'t delete index without calling the indexing again')
         sys.exit()
@@ -48,7 +42,8 @@ def main():
 
     if args.simulate:
         # Qui prendo solo documenti rilevanti (70%)
-        res = utils.simulate_search(es, index, query)
+        subset_size = 0.7
+        res = utils.simulate_search(es, index, query, subset_size)
     else:
         res = es_helpers.search(es, index, query)
 
@@ -61,6 +56,8 @@ def main():
         print(document_ids)
         input('Press enter to continue')
 
+    # ------------------------------------------------------------------------------------------
+    # This section is not usefull
     term_vectors = es_helpers.extract_term_vectors_from_documents(es, index, document_ids)
 
     if args.verbose:
@@ -76,10 +73,14 @@ def main():
         print('----------------------------------------')
         print(tf_matrix)
         input('Press enter to continue')
+    # ------------------------------------------------------------------------------------------
 
-    octis_helpers.create_dataset(documents)
-    nmf_output = octis_helpers.train_nmf_model()
+    dataset = octis_helpers.create_dataset(documents)
+    nmf_output = octis_helpers.run_nmf_model(dataset)
+    octis_helpers.evaluate_model(nmf_output, dataset)
+
     octis_helpers.display_topics(nmf_output)
+
     topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
 
     for vector in topic_vectors:

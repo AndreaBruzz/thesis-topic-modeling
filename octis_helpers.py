@@ -24,10 +24,7 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
     with open(vocabulary_path, "w", encoding="utf-8") as f:
         for word in sorted(vocabulary):
             f.write(f"{word}\n")
-    
-    print(f"DEBUG: Dataset created in: {dataset_folder}")
 
-def train_nmf_model(topics=10, topwords=5):
     dataset = Dataset()
     dataset.load_custom_dataset_from_folder('storage/octis/dataset')
 
@@ -43,21 +40,20 @@ def train_nmf_model(topics=10, topwords=5):
         min_chars=1,
         min_words_docs=0,
         min_df=0.05,
-        max_df=0.85
+        max_df=0.85,
+        split=True
     )
 
     dataset = preprocessor.preprocess_dataset(documents_path='storage/octis/dataset/corpus.tsv')
-    dataset.save('storage/octis/hello_dataset')
+    dataset.save('storage/octis/running_dataset')
 
+    print('DEBUG: dataset created at storage/octis/running_dataset')
+
+    return dataset
+
+def run_nmf_model(dataset, topics=10, topwords=5):
     nmf_model = NMF(num_topics=topics, random_state=754)
     nmf_output = nmf_model.train_model(dataset, top_words=topwords)
-
-    for k, v in nmf_output.items():
-        print(f"{k}:")
-        print(v)
-        print()
-
-    evaluate_model(nmf_output, dataset)
 
     return nmf_output
 

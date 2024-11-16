@@ -6,8 +6,6 @@ import re
 class TipsterParser:
     def __init__(self, directory_path):
         self.directory_path = directory_path
-        self.total_documents = 0
-        self.documents_with_title = 0
 
     def parse_document(self, file_path):
         with open(file_path, 'r', encoding='latin-1') as f: #con utf-8 avevo alcuni problemi
@@ -25,8 +23,6 @@ class TipsterParser:
         return parsed_documents
 
     def extract_document_data(self, doc):
-        self.total_documents += 1
-
         docno = doc.find('docno').get_text(strip=True) if doc.find('docno') else None
         
         text = doc.find('text').decode_contents() if doc.find('text') else None
@@ -40,8 +36,6 @@ class TipsterParser:
             title_tag = doc.find(tag)
             if title_tag:
                 title = title_tag.get_text(strip=True)
-                self.documents_with_title += 1
-
                 break
 
         if docno and text:
@@ -68,11 +62,6 @@ class TipsterParser:
                         f.write(f'{file_path} \n{e} \n')
 
         return all_documents
-    
-    def save_stats(self, output_file='storage/logs/stats.txt'):
-        with open(output_file, 'w') as file:
-            file.write(f'Total documents processed: {self.total_documents}\n')
-            file.write(f'Documents with title: {self.documents_with_title}\n')
 
 class QueryParser:
     def __init__(self, file_path):
