@@ -3,7 +3,9 @@ from octis.evaluation_metrics.coherence_metrics import Coherence
 from octis.evaluation_metrics.diversity_metrics import TopicDiversity
 from octis.models.NMF import NMF
 from octis.preprocessing.preprocessing import Preprocessing
+from nltk.tokenize import word_tokenize
 
+import nltk
 import string
 import es_helpers
 import os
@@ -13,14 +15,15 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
     os.makedirs(dataset_folder, exist_ok=True)
     corpus_path = os.path.join(dataset_folder, "corpus.tsv")
 
+    nltk.download('punkt')
     with open(corpus_path, "w", encoding="utf-8") as f:
         for doc in documents:
-            doc = doc.replace('\n', ' ')
+            doc = ' '.join(word_tokenize(doc.replace('\n', ' ')))
             f.write(f"{doc}\ttrain\n")
 
-    vocabulary = set(word for doc in documents for word in doc.split())
-    vocabulary_path = os.path.join(dataset_folder, "vocabulary.txt")
+    vocabulary = set(word for doc in documents for word in doc.split() if len(word) > 3 and not word.isdigit())
 
+    vocabulary_path = os.path.join(dataset_folder, "vocabulary.txt")
     with open(vocabulary_path, "w", encoding="utf-8") as f:
         for word in sorted(vocabulary):
             f.write(f"{word}\n")
@@ -40,8 +43,7 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
         min_chars=1,
         min_words_docs=0,
         min_df=0.05,
-        max_df=0.85,
-        split=True
+        max_df=0.85
     )
 
     dataset = preprocessor.preprocess_dataset(documents_path='storage/octis/dataset/corpus.tsv')
