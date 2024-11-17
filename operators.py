@@ -17,3 +17,17 @@ def join(v1, v2):
     u2 = (v2 - a2 * v1) / b2
 
     return u1, u2
+
+def meet(v1, v2, v3, v4):
+    u1, u2 = join(np.array(v1), np.array(v2))
+    u3, u4 = join(np.array(v3), np.array(v4))
+    
+    A = np.column_stack((u1, u2, -u3))
+
+    Q, R = np.linalg.qr(A)
+    qb = np.dot(Q, u4)
+    x1, x2 = np.linalg.solve(R, qb)
+
+    v = x1 * u1 + x2 * u2
+
+    return v
