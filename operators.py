@@ -25,9 +25,9 @@ def meet(v1, v2, v3, v4):
     A = np.column_stack((u1, u2, -u3))
 
     Q, R = np.linalg.qr(A)
-    qb = np.dot(Q, u4)
-    x1, x2 = np.linalg.solve(R, qb)
+    qb = np.dot(Q.T, u4)
+    x = np.linalg.solve(R, qb)
 
-    v = x1 * u1 + x2 * u2
+    v = x[0] * u1 + x[1] * u2
 
     return v
