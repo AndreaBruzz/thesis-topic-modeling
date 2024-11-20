@@ -5,6 +5,7 @@ import argparse
 import es_helpers
 import os
 import nltk
+import numpy as np
 import pandas as pd
 import random
 import subprocess
@@ -151,3 +152,21 @@ def select_index():
         except ValueError:
             print('Invalid input. Please enter a valid number.')
 
+def get_vocabulary():
+    vocabulary = []
+
+    with open('storage/octis/running_dataset/vocabulary.txt', 'r') as f:
+        for term in f.readlines():
+            vocabulary.append(term.strip())
+    
+    return vocabulary
+
+def topic_from_vector(vector, topk):
+    vocabulary = get_vocabulary()
+
+    indices = np.argsort(vector)[-topk:]
+
+    # topic = vocabulary[indices]
+    topic = [vocabulary[i] for i in indices]
+
+    return topic
