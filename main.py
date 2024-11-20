@@ -2,6 +2,7 @@ from parsers import TipsterParser, QueryParser
 
 import es_helpers
 import octis_helpers
+import operators
 import random
 import sys
 import utils
@@ -83,8 +84,14 @@ def main():
 
     topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
 
-    for vector in topic_vectors:
-        print(vector)
+    print('JOIN:')
+    join_result = operators.join(topic_vectors[0], topic_vectors[1])
+    for vector in join_result:
+        print(utils.topic_from_vector(vector, 5))
+
+    print('MEET:')
+    meet_result = operators.meet(topic_vectors[0], topic_vectors[1], topic_vectors[2], topic_vectors[3])
+    print(utils.topic_from_vector(meet_result, 5))
 
 if __name__ == "__main__":
     main()
