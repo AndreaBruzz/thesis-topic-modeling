@@ -25,7 +25,7 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
 
     vocabulary_path = os.path.join(dataset_folder, "vocabulary.txt")
     with open(vocabulary_path, "w", encoding="utf-8") as f:
-        for word in sorted(vocabulary):
+        for word in vocabulary:
             f.write(f"{word}\n")
 
     dataset = Dataset()
