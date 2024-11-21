@@ -13,7 +13,7 @@ This repository contains a Python project that requires a specific directory str
 
 Start by cloning the repository to your local machine.
 
-### Step 2: Create a virtual environment with Python 3.9
+### Step 2 (optional): Create a virtual environment with Python 3.9
 
 It is strongly **recommended** to create a virtual environment to isolate your project dependencies. Make sure you have Python 3.9 installed, as this is the required version for this project.
 
@@ -64,7 +64,15 @@ Make sure you have these files in the specified directories for the project to r
 
 ### Step 6: Run the project
 
-Now that the environment is set up, you can start using the project. For example:
+Now that the environment is set up, you can start using the project.
+
+First of all start elasticsearch and kibana containers with:
+
+```
+docker compose up -d
+```
+
+Then everything is set up and the code can be run with:
 
 ```
 python3 main.py
