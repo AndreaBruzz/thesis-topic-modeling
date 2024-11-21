@@ -1,7 +1,3 @@
-# Project Name
-
-This repository contains a Python project that requires a specific directory structure to function properly. Follow the steps below to set up the project environment and create the necessary directories.
-
 ## Prerequisites
 
 - Python 3.9 (make sure to use this version)
