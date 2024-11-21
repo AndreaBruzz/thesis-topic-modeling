@@ -57,7 +57,10 @@ def run_nmf_model(dataset, topics=10, topwords=5):
     nmf_model = NMF(num_topics=topics, random_state=754)
     nmf_output = nmf_model.train_model(dataset, top_words=topwords)
 
-    return nmf_output
+    # Needed to know the exact mapping in order to reconvert topics vectors
+    id2word = nmf_model.id2word
+
+    return nmf_output, id2word 
 
 def display_topics(nmf_output):
     topics = nmf_output['topics']
@@ -79,5 +82,5 @@ def get_topic_vectors(nmf_output):
 
     for i, topic_vec in enumerate(topic_word_matrix):
         topic_vectors.append(topic_vec)
-    
+
     return topic_vectors

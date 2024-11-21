@@ -77,7 +77,7 @@ def main():
     # ------------------------------------------------------------------------------------------
 
     dataset = octis_helpers.create_dataset(documents)
-    nmf_output = octis_helpers.run_nmf_model(dataset)
+    nmf_output, id2word = octis_helpers.run_nmf_model(dataset)
     octis_helpers.evaluate_model(nmf_output, dataset)
 
     octis_helpers.display_topics(nmf_output)
@@ -87,11 +87,11 @@ def main():
     print('JOIN:')
     join_result = operators.join(topic_vectors[0], topic_vectors[1])
     for vector in join_result:
-        print(utils.topic_from_vector(vector, 5))
+        print(utils.topic_from_vector(id2word, vector, 5))
 
     print('MEET:')
     meet_result = operators.meet(topic_vectors[0], topic_vectors[1], topic_vectors[2], topic_vectors[3])
-    print(utils.topic_from_vector(meet_result, 5))
+    print(utils.topic_from_vector(id2word, meet_result, 5))
 
 if __name__ == "__main__":
     main()
