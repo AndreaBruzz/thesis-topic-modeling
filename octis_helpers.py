@@ -68,10 +68,10 @@ def display_topics(nmf_output):
         print(f"Topic {id}: {topic}")
 
 def evaluate_model(nmf_output, dataset, topwords=5):
-    coherence_metric = Coherence(texts=dataset.get_corpus(), topk=topwords)
+    coherence_metric = Coherence(measure='c_v', topk=topwords)
     coherence_score = coherence_metric.score(nmf_output)
     print(f"Coherence Score: {coherence_score}")
-    
+
     diversity_metric = TopicDiversity(topk=topwords)
     diversity_score = diversity_metric.score(nmf_output)
     print(f"Diversity Score: {diversity_score}")
