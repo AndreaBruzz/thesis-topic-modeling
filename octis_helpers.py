@@ -9,7 +9,6 @@ import nltk
 import string
 import es_helpers
 import os
-import pandas as pd
 
 def create_dataset(documents, dataset_folder='storage/octis/dataset'):
     os.makedirs(dataset_folder, exist_ok=True)
@@ -40,10 +39,10 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
         punctuation=string.punctuation,
         lemmatize=True,
         stopword_list=list(custom_stopwords),
-        min_chars=1,
+        min_chars=2,
         min_words_docs=0,
         min_df=0.05,
-        max_df=0.85
+        max_df=0.81
     )
 
     dataset = preprocessor.preprocess_dataset(documents_path='storage/octis/dataset/corpus.tsv')
@@ -55,7 +54,15 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
 
 def run_nmf_model(dataset, topics=10, topwords=5):
     nmf_model = NMF(num_topics=topics, random_state=754)
-    nmf_output = nmf_model.train_model(dataset, top_words=topwords)
+
+    hyperparameters = {
+        'chunksize': 100,
+        'passes': 7,
+        'w_max_iter': 460,
+        'h_max_iter': 164,
+    }
+
+    nmf_output = nmf_model.train_model(dataset, hyperparameters=hyperparameters, top_words=topwords)
 
     # Needed to know the exact mapping in order to reconvert topics vectors
     id2word = nmf_model.id2word
@@ -67,7 +74,7 @@ def display_topics(nmf_output):
     for id, topic in enumerate(topics):
         print(f"Topic {id}: {topic}")
 
-def evaluate_model(nmf_output, dataset, topwords=5):
+def evaluate_model(nmf_output, topwords=5):
     coherence_metric = Coherence(measure='c_v', topk=topwords)
     coherence_score = coherence_metric.score(nmf_output)
     print(f"Coherence Score: {coherence_score}")
