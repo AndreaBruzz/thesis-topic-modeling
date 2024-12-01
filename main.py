@@ -1,4 +1,5 @@
 from parsers import TipsterParser, QueryParser
+from tuners import NMFTuner
 
 import es_helpers
 import octis_helpers
@@ -32,69 +33,83 @@ def main():
 
     query_parser = QueryParser('storage/queries/robust04.topics')
     queries = query_parser.parse_queries()
-    query = random.choice(list(queries.values()))
 
-    if args.verbose:
-        print('----------------------------------------')
-        print('RANDOM QUERY: ')
-        for key,val in query.items():
-            print(f'{key}: {val}')
-        input('Press enter to continue')
+    if not args.tune:
+        query = random.choice(list(queries.values()))
 
-    if args.simulate:
-        # Qui prendo solo documenti rilevanti (70%)
-        subset_size = 0.7
-        res = utils.simulate_search(es, index, query, subset_size)
+        if args.verbose:
+            print('----------------------------------------')
+            print('RANDOM QUERY: ')
+            for key,val in query.items():
+                print(f'{key}: {val}')
+            input('Press enter to continue')
+
+        if args.simulate:
+            # Qui prendo solo documenti rilevanti (70%)
+            subset_size = 0.7
+            res = utils.simulate_search(es, index, query, subset_size)
+        else:
+            res = es_helpers.search(es, index, query)
+
+        documents = [hit["_source"]["TEXT"] for hit in res["hits"]["hits"]]
+        document_ids = [hit['_id'] for hit in res['hits']['hits']]
+
+        if args.verbose:
+            print('----------------------------------------')
+            print(f'Found {len(document_ids)} documents:')
+            print(document_ids)
+            input('Press enter to continue')
+
+        # ------------------------------------------------------------------------------------------
+        # This section is not usefull
+        term_vectors = es_helpers.extract_term_vectors_from_documents(es, index, document_ids)
+
+        if args.verbose:
+            print('----------------------------------------')
+            for key,val in term_vectors.items():
+                print(f'{key}:')
+                for k,v in val.items():
+                    print(f'{k}: {v}')
+            input('Press enter to continue')
+
+        tf_matrix = utils.process_term_vectors(term_vectors)
+        if args.verbose:
+            print('----------------------------------------')
+            print(tf_matrix)
+            input('Press enter to continue')
+        # ------------------------------------------------------------------------------------------
+
+        dataset = octis_helpers.create_dataset(documents)
+
+        topics = 6
+        topwords = 6
+
+        nmf_output, id2word = octis_helpers.run_nmf_model(dataset, topics=topics, topwords=topwords)
+        octis_helpers.evaluate_model(nmf_output, topwords=topwords)
+
+        octis_helpers.display_topics(nmf_output)
+
+        topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
+
+        print('JOIN:')
+        join_result = operators.join(topic_vectors[0], topic_vectors[1])
+        for vector in join_result:
+            print(utils.topic_from_vector(id2word, vector, topwords))
+
+        print('MEET:')
+        meet_result = operators.meet(topic_vectors[0], topic_vectors[1], topic_vectors[2], topic_vectors[3])
+        print(utils.topic_from_vector(id2word, meet_result, topwords))
     else:
-        res = es_helpers.search(es, index, query)
+        for query in queries.values():
+            subset_size = 1
+            res = utils.simulate_search(es, index, query, subset_size)
 
-    documents = [hit["_source"]["TEXT"] for hit in res["hits"]["hits"]]
-    document_ids = [hit['_id'] for hit in res['hits']['hits']]
+            documents = [hit["_source"]["TEXT"] for hit in res["hits"]["hits"]]
 
-    if args.verbose:
-        print('----------------------------------------')
-        print(f'Found {len(document_ids)} documents:')
-        print(document_ids)
-        input('Press enter to continue')
+            dataset = octis_helpers.create_dataset(documents)
 
-    # ------------------------------------------------------------------------------------------
-    # This section is not usefull
-    term_vectors = es_helpers.extract_term_vectors_from_documents(es, index, document_ids)
-
-    if args.verbose:
-        print('----------------------------------------')
-        for key,val in term_vectors.items():
-            print(f'{key}:')
-            for k,v in val.items():
-                print(f'{k}: {v}')
-        input('Press enter to continue')
-
-    tf_matrix = utils.process_term_vectors(term_vectors)
-    if args.verbose:
-        print('----------------------------------------')
-        print(tf_matrix)
-        input('Press enter to continue')
-    # ------------------------------------------------------------------------------------------
-
-    dataset = octis_helpers.create_dataset(documents)
-    topics = 5
-    topwords = 5
-
-    nmf_output, id2word = octis_helpers.run_nmf_model(dataset, topics=topics, topwords=topwords)
-    octis_helpers.evaluate_model(nmf_output, topwords=topwords)
-
-    octis_helpers.display_topics(nmf_output)
-
-    topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
-
-    print('JOIN:')
-    join_result = operators.join(topic_vectors[0], topic_vectors[1])
-    for vector in join_result:
-        print(utils.topic_from_vector(id2word, vector, topwords))
-
-    print('MEET:')
-    meet_result = operators.meet(topic_vectors[0], topic_vectors[1], topic_vectors[2], topic_vectors[3])
-    print(utils.topic_from_vector(id2word, meet_result, topwords))
+            nmf_tuner = NMFTuner(dataset)
+            nmf_tuner.run(metric_name='coherence')
 
 if __name__ == "__main__":
     main()

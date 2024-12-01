@@ -27,6 +27,7 @@ def setup():
     parser.add_argument("-e", "--evaluate", action="store_true", help="Evaluate search engine performance")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print step by step results")
     parser.add_argument("-s", "--simulate", action="store_true", help="Simulate a random query and get only relevant docs for it")
+    parser.add_argument("-t", "--tune", action="store_true", help="Find best parameters for each qrel")
 
     args = parser.parse_args()
 
