@@ -1,3 +1,4 @@
+from itertools import combinations
 from parsers import TipsterParser, QueryParser
 from tuners import NMFTuner
 
@@ -91,14 +92,22 @@ def main():
 
         topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
 
+        join_topics = []
+        for v1, v2 in combinations(topic_vectors, 2):
+            join_topics.extend(operators.join(v1, v2))
+
         print('JOIN:')
-        join_result = operators.join(topic_vectors[0], topic_vectors[1])
-        for vector in join_result:
-            print(utils.topic_from_vector(id2word, vector, topwords))
+        for topic in join_topics:
+            print(utils.topic_from_vector(id2word, topic, topwords))
+
+        meet_topics = []
+        for v1, v2, v3, v4 in combinations(topic_vectors, 4):
+            meet_topics.append(operators.meet(v1, v2, v3, v4))
 
         print('MEET:')
-        meet_result = operators.meet(topic_vectors[0], topic_vectors[1], topic_vectors[2], topic_vectors[3])
-        print(utils.topic_from_vector(id2word, meet_result, topwords))
+        for topic in meet_topics:
+            print(utils.topic_from_vector(id2word, topic, topwords))
+
     else:
         for query in queries.values():
             subset_size = 1
