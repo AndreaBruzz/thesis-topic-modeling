@@ -84,7 +84,7 @@ class NMFTuner:
         plt.grid(True, linestyle='--', alpha=0.6)
         plt.tight_layout()
 
-        plot_path = os.path.join('storage/plots', f"documents_{self.docs_number}_topwords_top_5_{metric_name}_results.png")
+        plot_path = os.path.join('storage/plots/fine_tuning', f"documents_{self.docs_number}_topwords_top_5_{metric_name}_results.png")
         plt.savefig(plot_path, dpi=300)
         plt.show()
 
