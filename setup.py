@@ -1,7 +1,7 @@
 import os
 
 directories = {
-    'storage': ['eval', 'logs', 'octis', 'queries', 'tipster/corpora_unzipped']
+    'storage': ['eval', 'logs', 'octis', 'queries', 'tipster/corpora_unzipped', 'plots/bert', 'plots/fine_tuning']
 }
 
 for k, v in directories.items():
