@@ -6,6 +6,7 @@ from octis.preprocessing.preprocessing import Preprocessing
 from nltk.tokenize import word_tokenize
 
 import nltk
+import numpy as np
 import string
 import es_helpers
 import os
@@ -69,10 +70,32 @@ def run_nmf_model(dataset, topics=10, topwords=5):
 
     return nmf_output, id2word 
 
-def display_topics(nmf_output):
+def display_topics(nmf_output, id2word, topwords):
     topics = nmf_output['topics']
-    for id, topic in enumerate(topics):
-        print(f"Topic {id}: {topic}")
+    topic_word_matrix = nmf_output['topic-word-matrix']
+    topic_document_matrix = nmf_output['topic-document-matrix']
+    test_topic_document_matrix = nmf_output['test-topic-document-matrix']
+
+    # Documents used for validation are not considered here
+    full_matrix = np.hstack((
+        topic_document_matrix,
+        test_topic_document_matrix
+    ))
+    dominant_doc_counts = count_dominant_docs(full_matrix)
+
+    for id, _ in enumerate(topics):
+        word_indices = np.argsort(-topic_word_matrix[id])[:topwords]
+        
+        words_with_weights = [f"{id2word[idx]} ({topic_word_matrix[id, idx]:.4f})" for idx in word_indices]
+        topic_line = ", ".join(words_with_weights)
+        
+        print(f"Topic {id} ({dominant_doc_counts[id]} docs): {topic_line}")
+
+    train_avg_weights = nmf_output['topic-document-matrix'].mean(axis=1)
+    test_avg_weights = nmf_output['test-topic-document-matrix'].mean(axis=1)
+
+    print("\nAverage topic weights in training set:", train_avg_weights)
+    print("Average topic weights in test set:", test_avg_weights)
 
 def evaluate_model(nmf_output, topwords=5):
     coherence_metric = Coherence(measure='c_v', topk=topwords)
@@ -91,3 +114,9 @@ def get_topic_vectors(nmf_output):
         topic_vectors.append(topic_vec)
 
     return topic_vectors
+
+def count_dominant_docs(topic_document_matrix):
+    dominant_topic_per_doc = np.argmax(topic_document_matrix, axis=0)
+    topic_counts = np.bincount(dominant_topic_per_doc, minlength=topic_document_matrix.shape[0])
+
+    return topic_counts
