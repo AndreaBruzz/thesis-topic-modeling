@@ -1,5 +1,6 @@
 /storage
 /trec_eval
+todos.txt
 
 #########################################################################
 #                     DEFAULT GITIGNORE FOR PYTHON                      #
