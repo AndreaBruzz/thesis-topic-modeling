@@ -53,6 +53,12 @@ def main():
         else:
             res = es_helpers.search(es, index, query)
 
+            print('Document ranking:')
+            for rank, hit in enumerate(res['hits']['hits'], start=1):
+                doc_id = hit['_id']
+                score = hit['_score']
+                print(f"{rank:<5} {doc_id:<20} {score}")
+
         documents = [hit["_source"]["TEXT"] for hit in res["hits"]["hits"]]
         document_ids = [hit['_id'] for hit in res['hits']['hits']]
 
