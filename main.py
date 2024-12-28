@@ -53,11 +53,14 @@ def main():
         else:
             res = es_helpers.search(es, index, query)
 
-            print('Document ranking:')
-            for rank, hit in enumerate(res['hits']['hits'], start=1):
+            ranked_docs = []
+            for hit in res['hits']['hits']:
                 doc_id = hit['_id']
                 score = hit['_score']
-                print(f"{rank:<5} {doc_id:<20} {score}")
+                ranked_docs.append((doc_id, score))
+
+            print('Document ranking:')
+            utils.print_rank(ranked_docs)
 
         documents = {}
         for hit in res['hits']['hits']:
@@ -133,10 +136,7 @@ def main():
 
         reranked_docs = utils.rerank_documents(documents, scores, query['DESC'], join_topics, alpha=1, beta=1)
         print('\nRERANKED DOCUMENTS:')
-        rank = 1
-        for doc_id, score in reranked_docs:
-            print(f"{rank:<5} {doc_id:<20} {round(score, 6)}")
-            rank += 1
+        utils.print_rank(reranked_docs, ranked_docs)
 
     else:
         for query in queries.values():

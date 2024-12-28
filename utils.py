@@ -208,3 +208,22 @@ def calculate_topic_document_matrix(topics, documents):
     topic_document_matrix = cosine_similarity(document_embeddings, topic_embeddings)
 
     return topic_document_matrix
+
+def print_rank(reranked_docs, ranked_docs=None):
+    if ranked_docs is None:
+        for rank, (doc_id, score) in enumerate(reranked_docs, 1):
+            print(f"{rank:<5} {doc_id:<20} {round(score, 6)}")
+    else:
+        prev_rank_map = {doc_id: i + 1 for i, (doc_id, _) in enumerate(ranked_docs)}
+
+        for rank, (doc_id, score) in enumerate(reranked_docs, 1):
+            prev_rank = prev_rank_map[doc_id]
+
+            if prev_rank == rank:
+                change = "=="
+            elif prev_rank < rank:
+                change = f"-{rank - prev_rank}"
+            else:
+                change = f"+{prev_rank - rank}"
+
+            print(f"{rank:<5} {doc_id:<20} {round(score, 6):<12} {change}")
