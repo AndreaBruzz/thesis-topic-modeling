@@ -59,8 +59,13 @@ def main():
                 score = hit['_score']
                 print(f"{rank:<5} {doc_id:<20} {score}")
 
-        documents = [hit["_source"]["TEXT"] for hit in res["hits"]["hits"]]
-        document_ids = [hit['_id'] for hit in res['hits']['hits']]
+        documents = {}
+        for hit in res['hits']['hits']:
+            documents[hit['_id']] = hit["_source"]["TEXT"]
+        
+        documents_text = list(documents.values())
+        document_ids = list(documents.keys())
+        scores = [hit['_score'] for hit in res['hits']['hits']]
 
         if args.verbose:
             print('----------------------------------------')
@@ -87,7 +92,7 @@ def main():
             input('Press enter to continue')
         # ------------------------------------------------------------------------------------------
 
-        dataset = octis_helpers.create_dataset(documents)
+        dataset = octis_helpers.create_dataset(documents_text)
 
         topics = 6
         topwords = 6
@@ -106,20 +111,24 @@ def main():
 
         topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
 
-        join_topics = []
+        join_topic_vectors = []
         for v1, v2 in combinations(topic_vectors, 2):
-            join_topics.extend(operators.join(v1, v2))
+            join_topic_vectors.extend(operators.join(v1, v2))
 
+        join_topics = []
         print('JOIN:')
-        for topic in join_topics:
+        for topic in join_topic_vectors:
+            join_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
-        meet_topics = []
+        meet_topic_vectors = []
         for v1, v2, v3, v4 in combinations(topic_vectors, 4):
-            meet_topics.append(operators.meet(v1, v2, v3, v4))
+            meet_topic_vectors.append(operators.meet(v1, v2, v3, v4))
 
+        meet_topics = []
         print('MEET:')
         for topic in meet_topics:
+            meet_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
     else:
