@@ -127,7 +127,7 @@ def main():
 
         meet_topics = []
         print('MEET:')
-        for topic in meet_topics:
+        for topic in meet_topic_vectors:
             meet_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
