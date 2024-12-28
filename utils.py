@@ -1,5 +1,7 @@
 from parsers import QueryParser, QrelsParser
 from random import sample
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 import argparse
 import es_helpers
@@ -9,7 +11,6 @@ import numpy as np
 import pandas as pd
 import random
 import subprocess
-import sys
 
 def setup():
     random.seed(a=754)
@@ -158,3 +159,52 @@ def topic_from_vector(id2word, vector, topk):
     topic = [id2word[idx] for idx in indices]
 
     return topic
+
+def rerank_documents(documents, scores, query, topics, alpha=0.5, beta=0.5):
+    documents_id = list(documents.keys())
+    documents_text = list(documents.values())
+
+    query_embedding = embed_text(query)
+    topic_embeddings = embed_text(topics)
+
+    # Quanto un topic è relativo alla query
+    query_topic_similarity = cosine_similarity([query_embedding], topic_embeddings)[0]
+
+    # Quanto un topic è relativo al documento
+    topic_doc_matrix = calculate_topic_document_matrix(topics, documents_text)
+
+    # Punteggio della relazione topic-query in base alla relazione topic-doc
+    semantic_scores = []
+    for i in range(topic_doc_matrix.shape[0]):
+        doc_topic_probs = topic_doc_matrix[i]
+        semantic_score = np.dot(doc_topic_probs, query_topic_similarity)
+        semantic_scores.append(semantic_score)
+
+    # Sommo al ranking iniziale fornito da ES.
+    # Ha senso? Tengo solo questo score ricalcolato?
+    final_scores = [
+        alpha * scores[i] + beta * semantic_scores[i]
+        for i in range(len(scores))
+    ]
+
+    reranked_documents = sorted(
+        [(documents_id[i], final_scores[i]  ) for i in range(len(documents_id))],
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    return reranked_documents
+
+def embed_text(text):
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+
+    return model.encode(text)
+
+
+def calculate_topic_document_matrix(topics, documents):
+    topic_embeddings = embed_text(topics)
+    document_embeddings = embed_text(documents)
+
+    topic_document_matrix = cosine_similarity(document_embeddings, topic_embeddings)
+
+    return topic_document_matrix

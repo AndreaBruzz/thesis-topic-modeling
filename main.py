@@ -131,6 +131,13 @@ def main():
             meet_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
+        reranked_docs = utils.rerank_documents(documents, scores, query['DESC'], join_topics, alpha=1, beta=1)
+        print('\nRERANKED DOCUMENTS:')
+        rank = 1
+        for doc_id, score in reranked_docs:
+            print(f"{rank:<5} {doc_id:<20} {round(score, 6)}")
+            rank += 1
+
     else:
         for query in queries.values():
             subset_size = 1
