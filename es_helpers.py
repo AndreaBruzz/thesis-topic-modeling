@@ -126,7 +126,7 @@ def search(es, index, query, evaluate=False):
                     "operator": "or",
                 },
             },
-            "size": 100,
+            "size": 75,
         })
     else:
         res = es.search(index=index, body={
