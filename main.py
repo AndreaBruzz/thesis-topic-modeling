@@ -101,18 +101,23 @@ def main():
         topwords = 6
 
         print('\n###### NMF MODEL ######\n')
-        nmf_output, id2word = octis_helpers.run_nmf_model(dataset, topics, topwords)
+        nmf_output, nmf_id2word = octis_helpers.run_nmf_model(dataset, topics, topwords)
         octis_helpers.evaluate_model(nmf_output, topwords)
-        octis_helpers.display_topics(nmf_output, id2word, topwords)
+        octis_helpers.display_topics(nmf_output, nmf_id2word, topwords)
 
         print('\n###### BERT MODEL ######\n')
-        bert_output = bert_helpers.run_bertopic_model(topwords)
+        bert_output, bert_id2word = bert_helpers.run_bertopic_model(topwords)
         bert_helpers.evaluate_model(bert_output, dataset, topwords)
         bert_helpers.display_topics(bert_output)
         # bert_helpers.plot_topic_barchart(bert_output)
         # bert_helpers.plot_topic_hierarchy(bert_output)
 
-        topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
+        if utils.select_model() == 1:
+            topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
+            id2word = nmf_id2word
+        else:
+            topic_vectors = bert_helpers.get_topic_vectors(bert_output)
+            id2word = bert_id2word
 
         join_topic_vectors = []
         for v1, v2 in combinations(topic_vectors, 2):

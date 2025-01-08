@@ -32,7 +32,9 @@ def run_bertopic_model(topwords=5, documents=None):
     topic_model = configure_bertopic(topwords=topwords)
     topic_model.fit_transform(documents)
 
-    return topic_model
+    id2word = topic_model.vectorizer_model.get_feature_names()
+
+    return topic_model, id2word
 
 def evaluate_model(topic_model, dataset, topwords=5):
     all_topics = topic_model.get_topics()
@@ -78,3 +80,12 @@ def plot_topic_barchart(topic_model):
     print("Saved topics bar chart at plots/bert/barchart.html")
     fig = topic_model.visualize_barchart()
     fig.write_html("storage/plots/bert/barchart.html")
+
+def get_topic_vectors(bert_output):
+    topic_vectors = []
+    dense_c_tf_idf = bert_output.c_tf_idf_.toarray()
+
+    for row in dense_c_tf_idf:
+        topic_vectors.append(row)
+
+    return topic_vectors
