@@ -108,7 +108,7 @@ def main():
         print('\n###### BERT MODEL ######\n')
         bert_output, bert_id2word = bert_helpers.run_bertopic_model(topwords)
         bert_helpers.evaluate_model(bert_output, dataset, topwords)
-        bert_helpers.display_topics(bert_output)
+        bert_helpers.display_topics(bert_output, True)
         # bert_helpers.plot_topic_barchart(bert_output)
         # bert_helpers.plot_topic_hierarchy(bert_output)
 

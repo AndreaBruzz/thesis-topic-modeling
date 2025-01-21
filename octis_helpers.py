@@ -43,7 +43,8 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
         min_chars=2,
         min_words_docs=0,
         min_df=0.05,
-        max_df=0.81
+        max_df=0.81,
+        split=False,
     )
 
     dataset = preprocessor.preprocess_dataset(documents_path='storage/octis/dataset/corpus.tsv')
@@ -54,7 +55,7 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
     return dataset
 
 def run_nmf_model(dataset, topics=10, topwords=5):
-    nmf_model = NMF(num_topics=topics, random_state=754)
+    nmf_model = NMF(num_topics=topics, use_partitions=False, random_state=754)
 
     hyperparameters = {
         'chunksize': 100,
@@ -74,14 +75,8 @@ def display_topics(nmf_output, id2word, topwords):
     topics = nmf_output['topics']
     topic_word_matrix = nmf_output['topic-word-matrix']
     topic_document_matrix = nmf_output['topic-document-matrix']
-    test_topic_document_matrix = nmf_output['test-topic-document-matrix']
 
-    # Documents used for validation are not considered here
-    full_matrix = np.hstack((
-        topic_document_matrix,
-        test_topic_document_matrix
-    ))
-    dominant_doc_counts = count_dominant_docs(full_matrix)
+    dominant_doc_counts = count_dominant_docs(topic_document_matrix)
 
     for id, _ in enumerate(topics):
         word_indices = np.argsort(-topic_word_matrix[id])[:topwords]
@@ -92,10 +87,8 @@ def display_topics(nmf_output, id2word, topwords):
         print(f"Topic {id} ({dominant_doc_counts[id]} docs): {topic_line}")
 
     train_avg_weights = nmf_output['topic-document-matrix'].mean(axis=1)
-    test_avg_weights = nmf_output['test-topic-document-matrix'].mean(axis=1)
 
-    print("\nAverage topic weights in training set:", train_avg_weights)
-    print("Average topic weights in test set:", test_avg_weights)
+    print("\nAverage topic weights:", train_avg_weights)
 
 def evaluate_model(nmf_output, topwords=5):
     coherence_metric = Coherence(measure='c_v', topk=topwords)
