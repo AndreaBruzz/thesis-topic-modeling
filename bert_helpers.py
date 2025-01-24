@@ -85,7 +85,7 @@ def get_topic_vectors(bert_output):
     topic_vectors = []
     dense_c_tf_idf = bert_output.c_tf_idf_.toarray()
 
-    for row in dense_c_tf_idf:
+    for row in dense_c_tf_idf[1:]:
         topic_vectors.append(row)
 
     return topic_vectors
