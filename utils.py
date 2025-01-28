@@ -134,12 +134,9 @@ def run_trec_eval(index):
 
 def select_index():
     indexes = {
-        1: 'tipster_kstem_ngrams',
-        2: 'tipster_porter_combinedstop',
-        3: 'tipster_minimal_english_customstop',
-        4: 'tipster_light_english_defaultstop',
-        5: 'tipster_kstem_customstop',
-        6: 'test'
+        1: 'tipster_45',
+        1: 'tipster_45_porter',
+        1: 'tipster_45_kstem',
     }
 
     while True:

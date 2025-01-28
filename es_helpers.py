@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
+from es_indices import configurations
 from nltk.corpus import stopwords
 
 import time
@@ -47,49 +48,21 @@ def create_index(es, index, delete = False):
 def index_documents(es, index, documents):
     for doc in documents:
         try:
-            if index == 'test':
-                es.index(index=index, id=doc['DOCNO'], document={
-                    'DOCNO': doc['DOCNO'],
-                    'TEXT': doc['TEXT'],
-                    'TEXT_PROCESSED' : process_text(doc['TEXT']),
-                    'TITLE': doc.get('TITLE', None),
-                    'TITLE_PROCESSED' : process_text(doc.get('TITLE', None)),
-                })
-            else:
-                es.index(index=index, id=doc['DOCNO'], document={
-                    'DOCNO': doc['DOCNO'],
-                    'TEXT': doc['TEXT'],
-                    'TITLE': doc.get('TITLE', None),
-                })
+            es.index(index=index, id=doc['DOCNO'], document={
+                'DOCNO': doc['DOCNO'],
+                'TEXT': doc['TEXT'],
+                'TITLE': doc.get('TITLE', None),
+            })
             print(f"DEBUG: Document {doc['DOCNO']} indexed")
         except Exception as ex:
             print(f"ERROR: An error occurred while indexing document {doc['DOCNO']}: {str(ex)}")
 
 def bulk_index_documents(es, index, documents):
-    stoplist = load_stoplist('storage/tipster/inquery.stoplist')
-
     existing_ids = set()
     for doc in documents:
         if es.exists(index=index, id=doc['DOCNO']):
             existing_ids.add(doc['DOCNO'])
 
-    if index == 'test':
-        actions = [
-            {
-                "_index": index,
-                "_id": doc['DOCNO'],
-                "_source": {
-                    'DOCNO': doc['DOCNO'],
-                    'TEXT': doc['TEXT'],
-                    'TEXT_PROCESSED' : process_text(doc['TEXT']),
-                    'TITLE': doc.get('TITLE', None),
-                    'TITLE_PROCESSED' : process_text(doc.get('TITLE', None)),
-                }
-            }
-            for doc in documents
-            if doc['DOCNO'] not in existing_ids
-        ]
-    else:
         actions = [
             {
                 "_index": index,
@@ -109,8 +82,8 @@ def bulk_index_documents(es, index, documents):
         print(f"DEBUG: Successfully indexed {success} documents, {failed} failed")
     except Exception as ex:
         print(f"ERROR: An error occurred while during bulk indexing: {str(ex)}")
-        print('Waiting 10 minutes and re-establishing connection.')
-        time.sleep(60 * 10)
+        print('Waiting 3 minutes and re-establishing connection.')
+        time.sleep(60 * 3)
         es = connect_elasticsearch()
         print(f"DEBUG: Indexing docs one by one...")
         index_documents(es, index, documents)
@@ -247,256 +220,6 @@ def process_text(text, max_tokens=150000):
     return " ".join(processed_texts)
 
 def get_index_configuration(index_name):
-    stoplist = load_stoplist('storage/tipster/inquery.stoplist')
-
-    configurations = {
-        'tipster_kstem_customstop': {
-            "settings": {
-                "analysis": {
-                    "filter": {
-                        "custom_stop": {
-                            "type": "stop",
-                            "stopwords": stoplist
-                        },
-                        "kstem_filter": {
-                            "type": "kstem"
-                        }
-                    },
-                    "analyzer": {
-                        "custom_kstem_analyzer": {
-                            "tokenizer": "standard",
-                            "filter": [
-                                "lowercase",
-                                "custom_stop",
-                                "kstem_filter"
-                            ]
-                        }
-                    }
-                }
-            },
-            "mappings": {
-                "properties": {
-                    "DOCNO": {
-                        "type": "keyword"
-                    },
-                    "TITLE": {
-                        "type": "text",
-                        "analyzer": "custom_kstem_analyzer"
-                    },
-                    "TEXT": {
-                        "type": "text",
-                        "analyzer": "custom_kstem_analyzer"
-                    }
-                }
-            }
-        },
-        'tipster_light_english_defaultstop': {
-            "settings": {
-                "analysis": {
-                    "filter": {
-                        "english_stop": {
-                            "type": "stop",
-                            "stopwords": "_english_"
-                        },
-                        "light_english_stemmer": {
-                            "type": "stemmer",
-                            "language": "light_english"
-                        }
-                    },
-                    "analyzer": {
-                        "light_english_analyzer": {
-                            "tokenizer": "standard",
-                            "filter": [
-                                "lowercase",
-                                "english_stop",
-                                "light_english_stemmer"
-                            ]
-                        }
-                    }
-                }
-            },
-            "mappings": {
-                "properties": {
-                    "DOCNO": {
-                        "type": "keyword"
-                    },
-                    "TITLE": {
-                        "type": "text",
-                        "analyzer": "light_english_analyzer"
-                    },
-                    "TEXT": {
-                        "type": "text",
-                        "analyzer": "light_english_analyzer"
-                    }
-                }
-            }
-        },
-        'tipster_minimal_english_customstop': {
-            "settings": {
-                "analysis": {
-                    "filter": {
-                        "custom_stop": {
-                            "type": "stop",
-                            "stopwords": stoplist
-                        },
-                        "minimal_english_stemmer": {
-                            "type": "stemmer",
-                            "language": "minimal_english"
-                        }
-                    },
-                    "analyzer": {
-                        "minimal_english_analyzer": {
-                            "tokenizer": "standard",
-                            "filter": [
-                                "lowercase",
-                                "custom_stop",
-                                "minimal_english_stemmer"
-                            ]
-                        }
-                    }
-                }
-            },
-            "mappings": {
-                "properties": {
-                    "DOCNO": {
-                        "type": "keyword"
-                    },
-                    "TITLE": {
-                        "type": "text",
-                        "analyzer": "minimal_english_analyzer"
-                    },
-                    "TEXT": {
-                        "type": "text",
-                        "analyzer": "minimal_english_analyzer"
-                    }
-                }
-            }
-        },
-        'tipster_porter_combinedstop': {
-            "settings": {
-                "analysis": {
-                    "filter": {
-                        "combined_stop": {
-                            "type": "stop",
-                            "stopwords": ["_english_"] + stoplist
-                        },
-                        "porter_stemmer": {
-                            "type": "stemmer",
-                            "language": "english"
-                        }
-                    },
-                    "analyzer": {
-                        "porter_analyzer": {
-                            "tokenizer": "standard",
-                            "filter": [
-                                "lowercase",
-                                "combined_stop",
-                                "porter_stemmer"
-                            ]
-                        }
-                    }
-                }
-            },
-            "mappings": {
-                "properties": {
-                    "DOCNO": {
-                        "type": "keyword"
-                    },
-                    "TITLE": {
-                        "type": "text",
-                        "analyzer": "porter_analyzer"
-                    },
-                    "TEXT": {
-                        "type": "text",
-                        "analyzer": "porter_analyzer"
-                    }
-                }
-            }
-        },
-        'tipster_kstem_ngrams': {
-            "settings": {
-                "analysis": {
-                    "filter": {
-                        "custom_stop": {
-                            "type": "stop",
-                            "stopwords": stoplist
-                        },
-                        "kstem_filter": {
-                            "type": "kstem"
-                        },
-                        "bigram_filter": {
-                            "type": "shingle",
-                            "min_shingle_size": 2,
-                            "max_shingle_size": 2,
-                            "output_unigrams": True
-                        }
-                    },
-                    "analyzer": {
-                        "kstem_ngram_analyzer": {
-                            "tokenizer": "standard",
-                            "filter": [
-                                "lowercase",
-                                "custom_stop",
-                                "kstem_filter",
-                                "bigram_filter"
-                            ]
-                        }
-                    }
-                }
-            },
-            "mappings": {
-                "properties": {
-                    "DOCNO": {
-                        "type": "keyword"
-                    },
-                    "TITLE": {
-                        "type": "text",
-                        "analyzer": "kstem_ngram_analyzer"
-                    },
-                    "TEXT": {
-                        "type": "text",
-                        "analyzer": "kstem_ngram_analyzer"
-                    }
-                }
-            }
-        },
-        "test":{
-            "settings": {
-                "number_of_shards": 2,
-                "number_of_replicas": 0,
-                "analysis": {
-                    "filter": {
-                        "custom_stop": {
-                            "type": "stop",
-                            "stopwords": stoplist
-                        },
-                        "light_english_stemmer": {
-                            "type": "stemmer",
-                            "name": "light_english"
-                        }
-                    },
-                    "analyzer": {
-                        "light_english": {
-                            "type": "custom",
-                            "tokenizer": "standard",
-                            "filter": ["lowercase", "light_english_stemmer", "custom_stop"]
-                        }
-                    }
-                },
-            },
-            "mappings": {
-                    "properties": {
-                        "DOCNO": {"type": "keyword"},
-                        "TEXT": {"type": "text", "analyzer": "minimal_english"},
-                        "TEXT_PROCESSED": {"type": "text", "analyzer": "minimal_english"},
-                        "TITLE": {"type": "text", "analyzer": "minimal_english"},
-                        "TITLE_PROCESSED": {"type": "text", "analyzer": "minimal_english"},
-                    }
-                }
-        }
-
-    }
-
     config = configurations.get(index_name)
 
     if config is not None:
