@@ -135,8 +135,8 @@ def run_trec_eval(index):
 def select_index():
     indexes = {
         1: 'tipster_45',
-        1: 'tipster_45_porter',
-        1: 'tipster_45_kstem',
+        2: 'tipster_45_porter',
+        3: 'tipster_45_kstem',
     }
 
     while True:
