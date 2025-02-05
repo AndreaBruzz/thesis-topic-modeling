@@ -90,28 +90,16 @@ def bulk_index_documents(es, index, documents):
         print('DEBUG: Done!')
 
 def search(es, index, query, evaluate=False):
-    if index == 'test':
-        res = es.search(index=index, body={
-            "query": {
-                "multi_match": {
-                    "query": process_text(query['TITLE']),
-                    "fields": ["TITLE_PROCESSED", "TEXT_PROCESSED^2"],
-                    "operator": "or",
-                },
+    res = es.search(index=index, body={
+        "query": {
+            "multi_match": {
+                "query": query['TITLE'],
+                "fields": ["TITLE", "TEXT^2"],
+                "operator": "or",
             },
-            "size": 75,
-        })
-    else:
-        res = es.search(index=index, body={
-            "query": {
-                "multi_match": {
-                    "query": query['TITLE'],
-                    "fields": ["TITLE", "TEXT^2"],
-                    "operator": "or",
-                },
-            },
-            "size": 75,
-        })
+        },
+        "size": 75,
+    })
 
     if evaluate:
         with open('trec_eval/submition.txt', 'w') as f:
