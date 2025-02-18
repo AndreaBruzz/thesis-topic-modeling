@@ -27,14 +27,10 @@ configurations = {
                 "TITLE": {
                     "type": "text",
                     "analyzer": "text_analyzer",
-                    "fields": {"raw": {"type": "keyword"}}
                 },
                 "TEXT": {
                     "type": "text",
                     "analyzer": "text_analyzer",
-                    "fields": {
-                        "raw": {"type": "keyword"}
-                    }
                 }
             }
         }
@@ -64,14 +60,10 @@ configurations = {
                 "TITLE": {
                     "type": "text",
                     "analyzer": "text_analyzer",
-                    "fields": {"raw": {"type": "keyword"}}
                 },
                 "TEXT": {
                     "type": "text",
                     "analyzer": "text_analyzer",
-                    "fields": {
-                        "raw": {"type": "keyword"}
-                    }
                 }
             }
         }
@@ -101,14 +93,10 @@ configurations = {
                 "TITLE": {
                     "type": "text",
                     "analyzer": "text_analyzer",
-                    "fields": {"raw": {"type": "keyword"}}
                 },
                 "TEXT": {
                     "type": "text",
                     "analyzer": "text_analyzer",
-                    "fields": {
-                        "raw": {"type": "keyword"}
-                    }
                 }
             }
         }
