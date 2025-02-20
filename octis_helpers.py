@@ -11,7 +11,7 @@ import string
 import es_helpers
 import os
 
-def create_dataset(documents, dataset_folder='storage/octis/dataset'):
+def create_dataset(documents, vocabulary, dataset_folder='storage/octis/dataset'):
     os.makedirs(dataset_folder, exist_ok=True)
     corpus_path = os.path.join(dataset_folder, "corpus.tsv")
 
@@ -20,8 +20,6 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
         for doc in documents:
             doc = ' '.join(word_tokenize(doc.replace('\n', ' ')))
             f.write(f"{doc}\ttrain\n")
-
-    vocabulary = set(word for doc in documents for word in doc.split() if len(word) > 3 and not word.isdigit())
 
     vocabulary_path = os.path.join(dataset_folder, "vocabulary.txt")
     with open(vocabulary_path, "w", encoding="utf-8") as f:
@@ -34,7 +32,7 @@ def create_dataset(documents, dataset_folder='storage/octis/dataset'):
     custom_stopwords = es_helpers.get_stopwords()
 
     preprocessor = Preprocessing(
-        vocabulary=None,
+        vocabulary=vocabulary,
         max_features=None,
         remove_punctuation=True,
         punctuation=string.punctuation,
