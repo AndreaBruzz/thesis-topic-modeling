@@ -95,7 +95,15 @@ def main():
             input('Press enter to continue')
         # ------------------------------------------------------------------------------------------
 
-        dataset = octis_helpers.create_dataset(documents_text)
+        vocabulary = []
+        if (utils.select_vocabulary() == 1):
+                vocabulary = es_helpers.get_terms_window(es, index, query, documents_text)
+        else:
+                vocabulary = es_helpers.get_significant_words(es, index, query)
+
+        print(vocabulary)
+
+        dataset = octis_helpers.create_dataset(documents_text, vocabulary)
 
         topics = 6
         topwords = 6

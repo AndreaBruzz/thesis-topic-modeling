@@ -1,10 +1,13 @@
+from collections import defaultdict
 from elasticsearch import Elasticsearch
+from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from es_indices import configurations
 from nltk.corpus import stopwords
 
-import time
 import spacy
+import string
+import time
 
 nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"])
 nlp.max_length = 1500000
@@ -13,7 +16,7 @@ def connect_elasticsearch(host='localhost', port=9200):
     connected = False
 
     while not connected:
-        es = Elasticsearch(hosts=[{'host': host, 'port': port, 'scheme': 'http'}], timeout=30)
+        es = Elasticsearch(hosts=[{'host': host, 'port': port, 'scheme': 'http'}], timeout=300)
         if es.ping():
             connected = True
             print('DEBUG: Connected to Elasticsearch')
@@ -109,6 +112,72 @@ def search(es, index, query, evaluate=False):
                 f.write(f"{query['NUM']} Q0 {doc_id} {rank} {score} STANDARD\n")
 
     return res
+
+def get_significant_words(es, index, query):
+    res = es.search(index=index, body={
+        "query": {
+            "multi_match": {
+                "query": query['TITLE'],
+                "fields": ["TITLE", "TEXT^2"],
+                "operator": "or",
+            },
+        },
+        "size": 75,
+        "aggs": {
+            "significant_words": {
+                "significant_text": {
+                    "field": "TEXT",
+                    "size": 50,
+                    "filter_duplicate_text": True,
+                    "exclude": [*string.printable, *get_stopwords()],
+                    "min_doc_count": 5,
+                    "chi_square": {},
+                }
+            }
+        }
+    })
+
+    analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['TITLE'])
+    analyzed_query_terms = []
+    for bucket in analyzed_query_result['tokens']:
+        analyzed_query_terms.append(bucket['token'])
+
+    vocabulary = [bucket["key"] for bucket in res['aggregations']['significant_words']['buckets']]
+    for term in analyzed_query_terms:
+        if not term in vocabulary:
+            vocabulary.append(term)
+
+    return vocabulary
+
+def get_terms_window(es, index, query, documents_text):
+    N = 11
+    top_k = 50
+
+    analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['TITLE'])
+    query_terms = [bucket['token'] for bucket in analyzed_query_result['tokens']]
+
+    term_scores = defaultdict(float)
+
+    for doc in documents_text:
+        analyzed_text = IndicesClient.analyze(es, index=index, text=doc)
+        words = [bucket['token'] for bucket in analyzed_text['tokens'] 
+                 if len(bucket['token']) > 2 and not any(char.isdigit() for char in bucket['token'])]
+
+        for term in query_terms:
+            indices = [i for i, w in enumerate(words) if w == term]
+            if not indices:
+                continue
+
+            for idx in indices:
+                start = max(0, idx - N)
+                end = min(len(words), idx + N + 1)
+                for i in range(start, end):
+                    distance = abs(i - idx) + 1
+                    term_scores[words[i]] += 1 / distance
+
+    sorted_terms = sorted(term_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
+    
+    return [term for term, score in sorted_terms]
 
 def get_term_vectors(es, index, doc_id, field='TEXT'):
     try:

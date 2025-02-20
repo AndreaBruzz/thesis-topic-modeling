@@ -242,3 +242,19 @@ def select_model():
                 print('Invalid selection. Please enter a number from the list.')
         except ValueError:
             print('Invalid input. Please enter a valid number.')
+
+def select_vocabulary():
+    print()
+
+    vocabulary_options = {
+        1: 'Terms window',
+        2: 'Significant terms',
+    }
+
+    while True:
+        for key, val in vocabulary_options.items():
+            print(f'{key} - {val}')
+        try:
+            return int(input('Select vocabulary: '))
+        except ValueError:
+            print('Invalid input. Please enter a valid number.')
