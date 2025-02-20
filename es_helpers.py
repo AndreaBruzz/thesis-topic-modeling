@@ -157,11 +157,12 @@ def get_terms_window(es, index, query, documents_text):
     query_terms = [bucket['token'] for bucket in analyzed_query_result['tokens']]
 
     term_scores = defaultdict(float)
+    stopwords_list = get_stopwords()
 
     for doc in documents_text:
         analyzed_text = IndicesClient.analyze(es, index=index, text=doc)
         words = [bucket['token'] for bucket in analyzed_text['tokens'] 
-                 if len(bucket['token']) > 2 and not any(char.isdigit() for char in bucket['token'])]
+                 if bucket['token'] not in stopwords_list and len(bucket['token']) > 2 and not any(char.isdigit() for char in bucket['token'])]
 
         for term in query_terms:
             indices = [i for i, w in enumerate(words) if w == term]
