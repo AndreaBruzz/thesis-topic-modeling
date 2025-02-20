@@ -3,7 +3,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from es_indices import configurations
-from nltk.corpus import stopwords
+import stopwordsiso as stopwords
 
 import spacy
 import string
@@ -231,10 +231,10 @@ def check_relevant_docs_indexed(es, index, qrels, query_id):
     print(f"Not indexed relevant documents {total_relevant - indexed_count}")
 
 def get_stopwords():
-    nltk_stopwords = set(stopwords.words('english'))
+    iso_stopwords = stopwords.stopwords("en")
     custom_stoplist = load_stoplist('storage/tipster/inquery.stoplist')
 
-    return nltk_stopwords.union(custom_stoplist)
+    return iso_stopwords.union(custom_stoplist)
 
 def load_stoplist(file_path):
     with open(file_path, 'r') as f:

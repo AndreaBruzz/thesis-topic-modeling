@@ -15,11 +15,6 @@ import subprocess
 def setup():
     random.seed(a=754)
 
-    try:
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        nltk.download('stopwords', quiet=True)
-
     es = es_helpers.connect_elasticsearch()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -191,6 +186,8 @@ def rerank_documents(documents, scores, query, topics, alpha=0.5, beta=0.5):
     )
 
     return reranked_documents
+
+# Dato l'embedding del documento e la rappresentazione vettoriale del topic faccio il dot product tra quelli
 
 def embed_text(text):
     model = SentenceTransformer('all-MiniLM-L6-v2')
