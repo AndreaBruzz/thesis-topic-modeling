@@ -226,18 +226,18 @@ def print_rank(reranked_docs, ranked_docs=None):
             print(f"{rank:<5} {doc_id:<20} {round(score, 6):<12} {change}")
 
 def select_model():
-    indexes = {
+    models = {
         1: 'NMF',
         2: 'BERT'
     }
 
     while True:
-        for key, val in indexes.items():
+        for key, val in models.items():
             print(f'{key} - {val}')
         try:
-            index = int(input('Select index: '))
-            if index in indexes:
-                return indexes[index]
+            index = int(input('Select model: '))
+            if index in models:
+                return models[index]
             else:
                 print('Invalid selection. Please enter a number from the list.')
         except ValueError:
