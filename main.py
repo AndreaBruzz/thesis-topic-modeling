@@ -147,7 +147,7 @@ def main():
             meet_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
-        reranked_docs = utils.rerank_documents(documents, scores, query['DESC'], join_topics, alpha=1, beta=1)
+        reranked_docs = utils.rerank_documents(documents, query, join_topics)
         print('\nRERANKED DOCUMENTS:')
         utils.print_rank(reranked_docs, ranked_docs)
 

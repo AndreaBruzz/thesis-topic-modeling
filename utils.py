@@ -152,11 +152,14 @@ def topic_from_vector(id2word, vector, topk):
 
     return topic
 
-def rerank_documents(documents, scores, query, topics, alpha=0.5, beta=0.5):
+def rerank_documents(documents, query, topics):
+    qrels_parser = QrelsParser('storage/queries/robust04.qrels')
+    qrels = qrels_parser.parse_qrels()
+
     documents_id = list(documents.keys())
     documents_text = list(documents.values())
 
-    query_embedding = embed_text(query)
+    query_embedding = embed_text(query['TITLE'])
     topic_embeddings = embed_text(topics)
 
     # Quanto un topic è relativo alla query
@@ -172,22 +175,17 @@ def rerank_documents(documents, scores, query, topics, alpha=0.5, beta=0.5):
         semantic_score = np.dot(doc_topic_probs, query_topic_similarity)
         semantic_scores.append(semantic_score)
 
-    # Sommo al ranking iniziale fornito da ES.
-    # Ha senso? Tengo solo questo score ricalcolato?
-    final_scores = [
-        alpha * scores[i] + beta * semantic_scores[i]
-        for i in range(len(scores))
-    ]
+    final_scores = [semantic_scores[i] for i in range(len(documents_id))]
 
     reranked_documents = sorted(
-        [(documents_id[i], final_scores[i]  ) for i in range(len(documents_id))],
+        [(documents_id[i], final_scores[i]) for i in range(len(documents_id))],
         key=lambda x: x[1],
         reverse=True
     )
 
     return reranked_documents
 
-# Dato l'embedding del documento e la rappresentazione vettoriale del topic faccio il dot product tra quelli
+
 
 def embed_text(text):
     model = SentenceTransformer('all-MiniLM-L6-v2')
