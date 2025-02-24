@@ -154,7 +154,7 @@ def topic_from_vector(id2word, vector, topk):
 
 def rerank_documents(documents, query, topics):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
-    qrels = qrels_parser.parse_qrels()
+    qrel_docs = qrels_parser.parse_qrels(query['NUM'])
 
     documents_id = list(documents.keys())
     documents_text = list(documents.values())
@@ -168,6 +168,8 @@ def rerank_documents(documents, query, topics):
     # Quanto un topic è relativo al documento
     topic_doc_matrix = calculate_topic_document_matrix(topics, documents_text)
 
+    selection = select_reranking()
+
     # Punteggio della relazione topic-query in base alla relazione topic-doc
     semantic_scores = []
     for i in range(topic_doc_matrix.shape[0]):
@@ -177,15 +179,29 @@ def rerank_documents(documents, query, topics):
 
     final_scores = [semantic_scores[i] for i in range(len(documents_id))]
 
+    if (selection == 3):
+        n = 5
+        frozen_docs_id = documents_id[:n]
+        frozen_scores = final_scores[:n]
+        documents_id = documents_id[n:]
+        frozen_scores = final_scores[n:]
+
+        frozen_documents = [(frozen_docs_id[i], frozen_scores[i]) for i in range(len(frozen_docs_id))]
+
     reranked_documents = sorted(
         [(documents_id[i], final_scores[i]) for i in range(len(documents_id))],
         key=lambda x: x[1],
         reverse=True
     )
 
-    return reranked_documents
+    if (selection == 2):
+        return residual_ranking(reranked_documents, qrel_docs)
+    elif (selection == 3):
+        return frozen_documents + reranked_documents
 
-
+def residual_ranking(docs, qrel_docs):
+    qrel_set = set(qrel_docs)
+    return [doc for doc in docs if doc[0] not in qrel_set]
 
 def embed_text(text):
     model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -251,5 +267,22 @@ def select_vocabulary():
             print(f'{key} - {val}')
         try:
             return int(input('Select vocabulary: '))
+        except ValueError:
+            print('Invalid input. Please enter a valid number.')
+
+def select_reranking():
+    print()
+
+    vocabulary_options = {
+        1: 'No method',
+        2: 'Residual Ranking',
+        3: 'Frozen Ranking',
+    }
+
+    while True:
+        for key, val in vocabulary_options.items():
+            print(f'{key} - {val}')
+        try:
+            return int(input('Select reranking method: '))
         except ValueError:
             print('Invalid input. Please enter a valid number.')
