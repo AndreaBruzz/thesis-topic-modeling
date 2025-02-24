@@ -127,20 +127,40 @@ class QrelsParser:
     def __init__(self, qrels_file):
         self.qrels_file = qrels_file
 
-    def parse_qrels(self):
+    def parse_qrels(self, query_id=None):
         qrels = {}
 
-        with open(self.qrels_file, 'r') as file:
-            for line in file:
-                parts = line.strip().split()
-                if len(parts) == 4:
-                    query_id = parts[0]
-                    doc_id = parts[2]
-                    relevance = int(parts[3])
+        # If not asked for a specific query return all relevant qrels
+        if query_id is None:
+            with open(self.qrels_file, 'r') as file:
+                for line in file:
+                    parts = line.strip().split()
+                    if len(parts) == 4:
+                        q_id = parts[0]
+                        doc_id = parts[2]
+                        relevance = int(parts[3])
 
-                    if relevance == 1:
-                        if query_id not in qrels:
-                            qrels[query_id] = []
-                        qrels[query_id].append(doc_id)
+                        if q_id not in qrels:
+                            qrels[q_id] = []
 
-        return qrels
+                        if relevance == 1:
+                            qrels[q_id].append(doc_id)
+            return qrels
+        # If asked for a specific query return all relevance feedback documents split
+        # between relevant and not relevant
+        else:
+            relevant_docs = []
+            non_relevant_docs = []
+
+            with open(self.qrels_file, 'r') as file:
+                for line in file:
+                    parts = line.strip().split()
+                    if len(parts) == 4 and parts[0] == query_id:
+                        doc_id = parts[2]
+                        relevance = int(parts[3])
+                        if relevance == 1:
+                            relevant_docs.append(doc_id)
+                        else:
+                            non_relevant_docs.append(doc_id)
+
+            return {"relevant": relevant_docs, "non_relevant": non_relevant_docs}
