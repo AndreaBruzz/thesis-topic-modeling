@@ -200,8 +200,7 @@ def rerank_documents(documents, query, topics):
         return frozen_documents + reranked_documents
 
 def residual_ranking(docs, qrel_docs):
-    qrel_set = set(qrel_docs)
-    return [doc for doc in docs if doc[0] not in qrel_set]
+    return [doc for doc in docs if doc[0] not in set(qrel_docs['relevant']) | set(qrel_docs['non_relevant'])]
 
 def embed_text(text):
     model = SentenceTransformer('all-MiniLM-L6-v2')
