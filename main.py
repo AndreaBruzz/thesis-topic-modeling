@@ -76,25 +76,6 @@ def main():
             print(document_ids)
             input('Press enter to continue')
 
-        # ------------------------------------------------------------------------------------------
-        # This section is not usefull
-        term_vectors = es_helpers.extract_term_vectors_from_documents(es, index, document_ids)
-
-        if args.verbose:
-            print('----------------------------------------')
-            for key,val in term_vectors.items():
-                print(f'{key}:')
-                for k,v in val.items():
-                    print(f'{k}: {v}')
-            input('Press enter to continue')
-
-        tf_matrix = utils.process_term_vectors(term_vectors)
-        if args.verbose:
-            print('----------------------------------------')
-            print(tf_matrix)
-            input('Press enter to continue')
-        # ------------------------------------------------------------------------------------------
-
         vocabulary = []
         if (utils.select_vocabulary() == 1):
                 vocabulary = es_helpers.get_terms_window(es, index, query, documents_text)
@@ -117,8 +98,6 @@ def main():
         bert_output, bert_id2word = bert_helpers.run_bertopic_model(topwords)
         bert_helpers.evaluate_model(bert_output, dataset, topwords)
         bert_helpers.display_topics(bert_output, True)
-        # bert_helpers.plot_topic_barchart(bert_output)
-        # bert_helpers.plot_topic_hierarchy(bert_output)
 
         if utils.select_model() == 1:
             topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
