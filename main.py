@@ -51,7 +51,7 @@ def main():
             subset_size = 0.7
             res = utils.simulate_search(es, index, query, subset_size)
         else:
-            res = es_helpers.search(es, index, query)
+            res = es_helpers.search(es, index, query, 75)
 
             ranked_docs = []
             for hit in res['hits']['hits']:

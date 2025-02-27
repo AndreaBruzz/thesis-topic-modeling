@@ -92,7 +92,7 @@ def bulk_index_documents(es, index, documents):
         index_documents(es, index, documents)
         print('DEBUG: Done!')
 
-def search(es, index, query, evaluate=False):
+def search(es, index, query, size = 10000, evaluate=False):
     res = es.search(index=index, body={
         "query": {
             "multi_match": {
@@ -101,7 +101,7 @@ def search(es, index, query, evaluate=False):
                 "operator": "or",
             },
         },
-        "size": 75,
+        "size": size,
     })
 
     if evaluate:
