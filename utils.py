@@ -4,6 +4,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 import argparse
+import copy
 import es_helpers
 import os
 import nltk
@@ -152,7 +153,7 @@ def topic_from_vector(id2word, vector, topk):
 
     return topic
 
-def rerank_documents(documents, query, topics):
+def rerank_documents(reranking_type, documents, query, topics):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
     qrel_docs = qrels_parser.parse_qrels(query['NUM'])
 
@@ -168,8 +169,6 @@ def rerank_documents(documents, query, topics):
     # Quanto un topic è relativo al documento
     topic_doc_matrix = calculate_topic_document_matrix(topics, documents_text)
 
-    selection = select_reranking()
-
     # Punteggio della relazione topic-query in base alla relazione topic-doc
     semantic_scores = []
     for i in range(topic_doc_matrix.shape[0]):
@@ -179,7 +178,7 @@ def rerank_documents(documents, query, topics):
 
     final_scores = [semantic_scores[i] for i in range(len(documents_id))]
 
-    if (selection == 3):
+    if (reranking_type == 3):
         n = 5
         frozen_docs_id = documents_id[:n]
         frozen_scores = final_scores[:n]
@@ -194,10 +193,12 @@ def rerank_documents(documents, query, topics):
         reverse=True
     )
 
-    if (selection == 2):
+    if (reranking_type == 2):
         return residual_ranking(reranked_documents, qrel_docs)
-    elif (selection == 3):
+    elif (reranking_type == 3):
         return frozen_documents + reranked_documents
+    else:
+        return reranked_documents
 
 def residual_ranking(docs, qrel_docs):
     return [doc for doc in docs if doc[0] not in set(qrel_docs['relevant']) | set(qrel_docs['non_relevant'])]
@@ -216,14 +217,18 @@ def calculate_topic_document_matrix(topics, documents):
 
     return topic_document_matrix
 
-def print_rank(reranked_docs, ranked_docs=None):
+def print_rank(reranked_docs, ranked_docs=None, truncate=100):
     if ranked_docs is None:
         for rank, (doc_id, score) in enumerate(reranked_docs, 1):
             print(f"{rank:<5} {doc_id:<20} {round(score, 6)}")
     else:
         prev_rank_map = {doc_id: i + 1 for i, (doc_id, _) in enumerate(ranked_docs)}
+        count = 0
 
         for rank, (doc_id, score) in enumerate(reranked_docs, 1):
+            if count == truncate: break
+            count += 1
+
             prev_rank = prev_rank_map[doc_id]
 
             if prev_rank == rank:
@@ -285,3 +290,18 @@ def select_reranking():
             return int(input('Select reranking method: '))
         except ValueError:
             print('Invalid input. Please enter a valid number.')
+
+def ask_oracle(res, query):
+    qrels_parser = QrelsParser('storage/queries/robust04.qrels')
+    qrel_docs = qrels_parser.parse_qrels(query['NUM'])
+
+    # Ensure relevant docs are in a set for fast lookup
+    relevant_doc_ids = set(qrel_docs['relevant'])
+
+    # Make a deep copy to avoid modifying the original res
+    filtered_res = copy.deepcopy(res)
+
+    # Filter the hits in the copied response
+    filtered_res['hits']['hits'] = [doc for doc in filtered_res['hits']['hits'] if doc['_id'] in relevant_doc_ids]
+
+    return filtered_res  # Return the modified copy

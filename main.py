@@ -13,6 +13,7 @@ import utils
 def main():
     es, args = utils.setup()
     index = utils.select_index()
+    reranking_type = utils.select_reranking()
 
     if args.index:
         es_helpers.create_index(es, index, args.delete_index)
@@ -51,7 +52,12 @@ def main():
             subset_size = 0.7
             res = utils.simulate_search(es, index, query, subset_size)
         else:
-            res = es_helpers.search(es, index, query, 75)
+
+            if reranking_type == 1:
+                oracle_res = res = es_helpers.search(es, index, query, 75)
+            else:
+                res = es_helpers.search(es, index, query)
+                oracle_res = utils.ask_oracle(res, query)
 
             ranked_docs = []
             for hit in res['hits']['hits']:
@@ -63,7 +69,7 @@ def main():
             utils.print_rank(ranked_docs)
 
         documents = {}
-        for hit in res['hits']['hits']:
+        for hit in oracle_res['hits']['hits']:
             documents[hit['_id']] = hit["_source"]["TEXT"]
         
         documents_text = list(documents.values())
@@ -126,7 +132,11 @@ def main():
             meet_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
-        reranked_docs = utils.rerank_documents(documents, query, join_topics)
+        documents = {}
+        for hit in res['hits']['hits']:
+            documents[hit['_id']] = hit["_source"]["TEXT"]
+
+        reranked_docs = utils.rerank_documents(reranking_type, documents, query, join_topics)
         print('\nRERANKED DOCUMENTS:')
         utils.print_rank(reranked_docs, ranked_docs)
 
