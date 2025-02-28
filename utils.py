@@ -217,12 +217,16 @@ def calculate_topic_document_matrix(topics, documents):
     return topic_document_matrix
 
 def print_rank(reranked_docs, ranked_docs=None, truncate=100):
+    count = 0
+
     if ranked_docs is None:
         for rank, (doc_id, score) in enumerate(reranked_docs, 1):
+            if count == truncate: break
+            count += 1
+
             print(f"{rank:<5} {doc_id:<20} {round(score, 6)}")
     else:
         prev_rank_map = {doc_id: i + 1 for i, (doc_id, _) in enumerate(ranked_docs)}
-        count = 0
 
         for rank, (doc_id, score) in enumerate(reranked_docs, 1):
             if count == truncate: break
