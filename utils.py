@@ -7,7 +7,6 @@ import argparse
 import copy
 import es_helpers
 import os
-import nltk
 import numpy as np
 import pandas as pd
 import random

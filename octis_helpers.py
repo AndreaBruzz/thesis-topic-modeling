@@ -15,7 +15,6 @@ def create_dataset(documents, vocabulary, dataset_folder='storage/octis/dataset'
     os.makedirs(dataset_folder, exist_ok=True)
     corpus_path = os.path.join(dataset_folder, "corpus.tsv")
 
-    nltk.download('punkt')
     with open(corpus_path, "w", encoding="utf-8") as f:
         for doc in documents:
             doc = ' '.join(word_tokenize(doc.replace('\n', ' ')))
