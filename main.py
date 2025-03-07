@@ -53,7 +53,7 @@ def main():
             res = utils.simulate_search(es, index, query, subset_size)
         else:
 
-            if reranking_type == 1:
+            if reranking_type == 'No method':
                 oracle_res = res = es_helpers.search(es, index, query, 75)
             else:
                 res = es_helpers.search(es, index, query)
@@ -82,9 +82,10 @@ def main():
             input('Press enter to continue')
 
         vocabulary = []
-        if (utils.select_vocabulary() == 1):
+        selected_vocabulary = utils.select_vocabulary()
+        if (selected_vocabulary == 'Terms window'):
                 vocabulary = es_helpers.get_terms_window(es, index, query, documents_text)
-        else:
+        elif (selected_vocabulary == 'Significant terms'):
                 vocabulary = es_helpers.get_significant_words(es, index, query)
 
         dataset = octis_helpers.create_dataset(documents_text, vocabulary)
