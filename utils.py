@@ -249,8 +249,8 @@ def select_vocabulary():
 
     return options[menu_entry_index]
 
-def select_reranking():
-    title = '\nSelect Reranking type:'
+def select_reranking_evaluation():
+    title = '\nSelect Reranking Evaluation type:'
     options = ['No method', 'Residual Ranking', 'Frozen Ranking']
     terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
     menu_entry_index = terminal_menu.show()

@@ -13,7 +13,7 @@ import utils
 def main():
     es, args = utils.setup()
     index = utils.select_index()
-    reranking_type = utils.select_reranking()
+    evaluation_type = utils.select_reranking_evaluation()
 
     if args.index:
         es_helpers.create_index(es, index, args.delete_index)
@@ -53,7 +53,7 @@ def main():
             res = utils.simulate_search(es, index, query, subset_size)
         else:
 
-            if reranking_type == 'No method':
+            if evaluation_type == 'No method':
                 oracle_res = res = es_helpers.search(es, index, query, 75)
             else:
                 res = es_helpers.search(es, index, query)
@@ -134,7 +134,7 @@ def main():
         for hit in res['hits']['hits']:
             documents[hit['_id']] = hit["_source"]["TEXT"]
 
-        reranked_docs = utils.rerank_documents(reranking_type, documents, query, join_topics)
+        reranked_docs = utils.rerank_documents(evaluation_type, documents, query, join_topics)
         print('\nRERANKED DOCUMENTS:')
         utils.print_rank(reranked_docs, ranked_docs)
 
