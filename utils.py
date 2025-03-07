@@ -2,6 +2,7 @@ from parsers import QueryParser, QrelsParser
 from random import sample
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from simple_term_menu import TerminalMenu
 
 import argparse
 import copy
@@ -128,23 +129,12 @@ def run_trec_eval(index):
 
 
 def select_index():
-    indexes = {
-        1: 'tipster_45',
-        2: 'tipster_45_porter',
-        3: 'tipster_45_kstem',
-    }
+    title = '\nSelect which Index to use:'
+    options = ['tipster_45', 'tipster_45_porter', 'tipster_45_kstem']
+    terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
+    menu_entry_index = terminal_menu.show()
 
-    while True:
-        for key, val in indexes.items():
-            print(f'{key} - {val}')
-        try:
-            index = int(input('Select index: '))
-            if index in indexes:
-                return indexes[index]
-            else:
-                print('Invalid selection. Please enter a number from the list.')
-        except ValueError:
-            print('Invalid input. Please enter a valid number.')
+    return options[menu_entry_index]
 
 def topic_from_vector(id2word, vector, topk):
     indices = np.argsort(vector)[-topk:][::-1]
@@ -177,7 +167,7 @@ def rerank_documents(evaluation_type, documents, query, topics):
 
     final_scores = [semantic_scores[i] for i in range(len(documents_id))]
 
-    if (evaluation_type == 3):
+    if (evaluation_type == 'Frozen Ranking'):
         n = 5
         frozen_docs_id = documents_id[:n]
         frozen_scores = final_scores[:n]
@@ -192,9 +182,9 @@ def rerank_documents(evaluation_type, documents, query, topics):
         reverse=True
     )
 
-    if (evaluation_type == 2):
+    if (evaluation_type == 'Residual Ranking'):
         return residual_ranking(reranked_documents, qrel_docs)
-    elif (evaluation_type == 3):
+    elif (evaluation_type == 'Frozen Ranking'):
         return frozen_documents + reranked_documents
     else:
         return reranked_documents
@@ -244,55 +234,28 @@ def print_rank(reranked_docs, ranked_docs=None, truncate=100):
             print(f"{rank:<5} {doc_id:<20} {round(score, 6):<12} {change}")
 
 def select_model():
-    models = {
-        1: 'NMF',
-        2: 'BERT'
-    }
+    title = '\nSelect which Model to use:'
+    options = ['NMF', 'BERT']
+    terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
+    menu_entry_index = terminal_menu.show()
 
-    while True:
-        for key, val in models.items():
-            print(f'{key} - {val}')
-        try:
-            index = int(input('Select model: '))
-            if index in models:
-                return models[index]
-            else:
-                print('Invalid selection. Please enter a number from the list.')
-        except ValueError:
-            print('Invalid input. Please enter a valid number.')
+    return options[menu_entry_index]
 
 def select_vocabulary():
-    print()
+    title = '\nSelect vocabulary:'
+    options = ['Terms window', 'Significant terms']
+    terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
+    menu_entry_index = terminal_menu.show()
 
-    vocabulary_options = {
-        1: 'Terms window',
-        2: 'Significant terms',
-    }
-
-    while True:
-        for key, val in vocabulary_options.items():
-            print(f'{key} - {val}')
-        try:
-            return int(input('Select vocabulary: '))
-        except ValueError:
-            print('Invalid input. Please enter a valid number.')
+    return options[menu_entry_index]
 
 def select_reranking():
-    print()
+    title = '\nSelect Reranking type:'
+    options = ['No method', 'Residual Ranking', 'Frozen Ranking']
+    terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
+    menu_entry_index = terminal_menu.show()
 
-    vocabulary_options = {
-        1: 'No method',
-        2: 'Residual Ranking',
-        3: 'Frozen Ranking',
-    }
-
-    while True:
-        for key, val in vocabulary_options.items():
-            print(f'{key} - {val}')
-        try:
-            return int(input('Select reranking method: '))
-        except ValueError:
-            print('Invalid input. Please enter a valid number.')
+    return options[menu_entry_index]
 
 def ask_oracle(res, query):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
