@@ -298,13 +298,11 @@ def ask_oracle(res, query):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
     qrel_docs = qrels_parser.parse_qrels(query['NUM'])
 
-    # Ensure relevant docs are in a set for fast lookup
     relevant_doc_ids = set(qrel_docs['relevant'])
 
     # Make a deep copy to avoid modifying the original res
     filtered_res = copy.deepcopy(res)
 
-    # Filter the hits in the copied response
     filtered_res['hits']['hits'] = [doc for doc in filtered_res['hits']['hits'] if doc['_id'] in relevant_doc_ids]
 
-    return filtered_res  # Return the modified copy
+    return filtered_res
