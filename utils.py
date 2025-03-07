@@ -152,7 +152,7 @@ def topic_from_vector(id2word, vector, topk):
 
     return topic
 
-def rerank_documents(reranking_type, documents, query, topics):
+def rerank_documents(evaluation_type, documents, query, topics):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
     qrel_docs = qrels_parser.parse_qrels(query['NUM'])
 
@@ -177,7 +177,7 @@ def rerank_documents(reranking_type, documents, query, topics):
 
     final_scores = [semantic_scores[i] for i in range(len(documents_id))]
 
-    if (reranking_type == 3):
+    if (evaluation_type == 3):
         n = 5
         frozen_docs_id = documents_id[:n]
         frozen_scores = final_scores[:n]
@@ -192,9 +192,9 @@ def rerank_documents(reranking_type, documents, query, topics):
         reverse=True
     )
 
-    if (reranking_type == 2):
+    if (evaluation_type == 2):
         return residual_ranking(reranked_documents, qrel_docs)
-    elif (reranking_type == 3):
+    elif (evaluation_type == 3):
         return frozen_documents + reranked_documents
     else:
         return reranked_documents
