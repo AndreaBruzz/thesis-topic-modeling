@@ -142,12 +142,11 @@ def topic_from_vector(id2word, vector, topk):
 
     return topic
 
-def rerank_documents(evaluation_type, documents, query, topics):
+def rerank_documents(evaluation_type, documents, documents_embeddings, query, topics):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
     qrel_docs = qrels_parser.parse_qrels(query['NUM'])
 
     documents_id = list(documents.keys())
-    documents_text = list(documents.values())
 
     query_embedding = embed_text(query['TITLE'])
     topic_embeddings = embed_text(topics)
@@ -156,7 +155,7 @@ def rerank_documents(evaluation_type, documents, query, topics):
     query_topic_similarity = cosine_similarity([query_embedding], topic_embeddings)[0]
 
     # Quanto un topic è relativo al documento
-    topic_doc_matrix = calculate_topic_document_matrix(topics, documents_text)
+    topic_doc_matrix = calculate_topic_document_matrix(topic_embeddings, documents_embeddings)
 
     # Punteggio della relazione topic-query in base alla relazione topic-doc
     semantic_scores = []
@@ -192,19 +191,38 @@ def rerank_documents(evaluation_type, documents, query, topics):
 def residual_ranking(docs, qrel_docs):
     return [doc for doc in docs if doc[0] not in set(qrel_docs['relevant']) | set(qrel_docs['non_relevant'])]
 
-def embed_text(text):
+def embed_text(text, is_documents = False):
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+
+    embeddings = []
+    if is_documents:
+        for doc in text:
+            embedding = get_document_embedding(doc, model)
+            embeddings.append(embedding)
+        return embeddings
+
+    return model.encode(text)
+
+def embed_text_trunc(text):
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
     return model.encode(text)
 
+def get_document_embedding(document, model, max_words=95):
+    words = document.split()
+    chunks = []
+    for i in range(0, len(words), max_words):
+        chunk = " ".join(words[i:i+max_words])
+        chunks.append(chunk)
 
-def calculate_topic_document_matrix(topics, documents):
-    topic_embeddings = embed_text(topics)
-    document_embeddings = embed_text(documents)
+    chunk_embeddings = model.encode(chunks)
 
-    topic_document_matrix = cosine_similarity(document_embeddings, topic_embeddings)
+    # The final embedding is the avg of all the chunks
+    document_embedding = np.mean(chunk_embeddings, axis=0)
+    return document_embedding
 
-    return topic_document_matrix
+def calculate_topic_document_matrix(topic_embeddings, documents_embeddings):
+    return cosine_similarity(documents_embeddings, topic_embeddings)
 
 def print_rank(reranked_docs, ranked_docs=None, truncate=100):
     count = 0
@@ -269,3 +287,11 @@ def ask_oracle(res, query):
     filtered_res['hits']['hits'] = [doc for doc in filtered_res['hits']['hits'] if doc['_id'] in relevant_doc_ids]
 
     return filtered_res
+
+def select_embedding_type():
+    title = '\nSelect Embedding type:'
+    options = ['EMBEDDING_FULL', 'EMBEDDING_TRUNC']
+    terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
+    menu_entry_index = terminal_menu.show()
+
+    return options[menu_entry_index]

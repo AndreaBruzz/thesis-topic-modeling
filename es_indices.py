@@ -31,6 +31,14 @@ configurations = {
                 "TEXT": {
                     "type": "text",
                     "analyzer": "text_analyzer",
+                },
+                'EMBEDDING_FULL': {
+                    'type': 'dense_vector',
+                    "dims": 384, # specific con all-MiniLM-L6-v2
+                },
+                'EMBEDDING_TRUNC': {
+                    'type': 'dense_vector',
+                    "dims": 384, # specific con all-MiniLM-L6-v2
                 }
             }
         }
@@ -64,6 +72,14 @@ configurations = {
                 "TEXT": {
                     "type": "text",
                     "analyzer": "text_analyzer",
+                },
+                'EMBEDDING_FULL': {
+                    'type': 'dense_vector',
+                    "dims": 384, # specific con all-MiniLM-L6-v2
+                },
+                'EMBEDDING_TRUNC': {
+                    'type': 'dense_vector',
+                    "dims": 384, # specific con all-MiniLM-L6-v2
                 }
             }
         }
@@ -97,6 +113,14 @@ configurations = {
                 "TEXT": {
                     "type": "text",
                     "analyzer": "text_analyzer",
+                },
+                'EMBEDDING_FULL': {
+                    'type': 'dense_vector',
+                    "dims": 384, # specific con all-MiniLM-L6-v2
+                },
+                'EMBEDDING_TRUNC': {
+                    'type': 'dense_vector',
+                    "dims": 384, # specific con all-MiniLM-L6-v2
                 }
             }
         }

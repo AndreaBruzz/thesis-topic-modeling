@@ -8,6 +8,7 @@ import stopwordsiso as stopwords
 import spacy
 import string
 import time
+import utils
 
 nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"])
 nlp.max_length = 1500000
@@ -55,6 +56,8 @@ def index_documents(es, index, documents):
                 'DOCNO': doc['DOCNO'],
                 'TEXT': doc['TEXT'],
                 'TITLE': doc.get('TITLE', None),
+                'EMBEDDING_TRUNC': utils.embed_text_trunc(doc['TEXT']),
+                'EMBEDDING_FULL': utils.embed_text([doc['TEXT']], True)[0],
             })
             print(f"DEBUG: Document {doc['DOCNO']} indexed")
         except Exception as ex:
@@ -74,6 +77,8 @@ def bulk_index_documents(es, index, documents):
                     'DOCNO': doc['DOCNO'],
                     'TEXT': doc['TEXT'],
                     'TITLE': doc.get('TITLE', None),
+                    'EMBEDDING_TRUNC': utils.embed_text_trunc(doc['TEXT']),
+                    'EMBEDDING_FULL': utils.embed_text([doc['TEXT']], True)[0],
                 }
             }
             for doc in documents
