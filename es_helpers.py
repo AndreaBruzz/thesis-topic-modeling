@@ -3,9 +3,9 @@ from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from es_indices import configurations
-import stopwordsiso as stopwords
 
 import spacy
+import stopwordsiso as stopwords
 import string
 import time
 import utils
