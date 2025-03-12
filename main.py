@@ -71,7 +71,7 @@ def main():
         documents = {}
         for hit in oracle_res['hits']['hits']:
             documents[hit['_id']] = hit["_source"]["TEXT"]
-        
+
         documents_text = list(documents.values())
         document_ids = list(documents.keys())
 
@@ -103,7 +103,7 @@ def main():
         bert_helpers.evaluate_model(bert_output, dataset, topwords)
         bert_helpers.display_topics(bert_output, True)
 
-        if utils.select_model() == 1:
+        if utils.select_model() == 'NMF':
             topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
             id2word = nmf_id2word
         else:
