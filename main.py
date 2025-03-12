@@ -13,7 +13,6 @@ import utils
 def main():
     es, args = utils.setup()
     index = utils.select_index()
-    evaluation_type = utils.select_reranking_evaluation()
 
     if args.index:
         es_helpers.create_index(es, index, args.delete_index)
@@ -52,6 +51,7 @@ def main():
             subset_size = 0.7
             res = utils.simulate_search(es, index, query, subset_size)
         else:
+            evaluation_type = utils.select_reranking_evaluation()
 
             if evaluation_type == 'No method':
                 oracle_res = res = es_helpers.search(es, index, query, 75)
