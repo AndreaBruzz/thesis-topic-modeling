@@ -80,6 +80,10 @@ def main():
         documents_text = list(documents.values())
         document_ids = list(documents.keys())
 
+        oracle_docs = {}
+        for hit in oracle_res['hits']['hits']:
+            oracle_docs[hit['_id']] = hit["_source"]["TEXT"]
+
         if args.verbose:
             print('----------------------------------------')
             print(f'Found {len(document_ids)} documents:')
@@ -135,10 +139,6 @@ def main():
             meet_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
-        documents = {}
-        for hit in res['hits']['hits']:
-            documents[hit['_id']] = hit["_source"]["TEXT"]
-
         embedding_type = utils.select_embedding_type()
         documents_embeddings = []
         for hit in res['hits']['hits']:
@@ -146,7 +146,7 @@ def main():
             embedding = hit["_source"][embedding_type]
             documents_embeddings.append(embedding)
 
-        reranked_docs = utils.rerank_documents(evaluation_type, documents, documents_embeddings, query, join_topics)
+        reranked_docs = utils.rerank_documents(evaluation_type, ranked_docs, oracle_docs, documents, documents_embeddings, query, join_topics)
         print('\nRERANKED DOCUMENTS:')
         utils.print_rank(reranked_docs, ranked_docs)
 

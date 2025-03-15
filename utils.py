@@ -142,7 +142,7 @@ def topic_from_vector(id2word, vector, topk):
 
     return topic
 
-def rerank_documents(evaluation_type, documents, documents_embeddings, query, topics):
+def rerank_documents(evaluation_type, ranked_docs, oracle_docs, documents, documents_embeddings, query, topics):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
     qrel_docs = qrels_parser.parse_qrels(query['NUM'])
 
@@ -164,28 +164,39 @@ def rerank_documents(evaluation_type, documents, documents_embeddings, query, to
         semantic_score = np.dot(doc_topic_probs, query_topic_similarity)
         semantic_scores.append(semantic_score)
 
-    final_scores = [semantic_scores[i] for i in range(len(documents_id))]
+    docs_scores = {doc_id: semantic_scores[i] for i, doc_id in enumerate(documents_id)}
 
-    if (evaluation_type == 'Frozen Ranking'):
-        n = 5
-        frozen_docs_id = documents_id[:n]
-        frozen_scores = final_scores[:n]
-        documents_id = documents_id[n:]
-        frozen_scores = final_scores[n:]
-
-        frozen_documents = [(frozen_docs_id[i], frozen_scores[i]) for i in range(len(frozen_docs_id))]
-
-    reranked_documents = sorted(
-        [(documents_id[i], final_scores[i]) for i in range(len(documents_id))],
-        key=lambda x: x[1],
-        reverse=True
-    )
-
-    if (evaluation_type == 'Residual Ranking'):
+    if evaluation_type == 'Residual Ranking':
+        reranked_documents = sorted(
+            [(doc_id, docs_scores[doc_id]) for doc_id in documents_id],
+            key=lambda x: x[1],
+            reverse=True
+        )
         return residual_ranking(reranked_documents, qrel_docs)
-    elif (evaluation_type == 'Frozen Ranking'):
-        return frozen_documents + reranked_documents
+    elif evaluation_type == 'Frozen Ranking':
+        oracle_docs_ids = list(oracle_docs.keys())
+        
+        non_frozen_docs = [doc_id for doc_id in documents_id if doc_id not in oracle_docs_ids]
+        non_frozen_reranked = sorted(
+            [(doc_id, docs_scores[doc_id]) for doc_id in non_frozen_docs],
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        final_ranking = []
+        for doc in ranked_docs:
+            if doc[0] in oracle_docs_ids:
+                final_ranking.append((doc[0], docs_scores[doc[0]]))
+            else:
+                final_ranking.append(non_frozen_reranked.pop(0))
+
+        return final_ranking
     else:
+        reranked_documents = sorted(
+            [(doc_id, docs_scores[doc_id]) for doc_id in documents_id],
+            key=lambda x: x[1],
+            reverse=True
+        )
         return reranked_documents
 
 def residual_ranking(docs, qrel_docs):
