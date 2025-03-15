@@ -75,13 +75,6 @@ def main():
         documents_text = list(documents.values())
         document_ids = list(documents.keys())
 
-        embedding_type = utils.select_embedding_type()
-        documents_embeddings = []
-        for hit in res['hits']['hits']:
-            doc_id = hit['_id']
-            embedding = hit["_source"][embedding_type]
-            documents_embeddings.append(embedding)
-
         if args.verbose:
             print('----------------------------------------')
             print(f'Found {len(document_ids)} documents:')
@@ -140,6 +133,13 @@ def main():
         documents = {}
         for hit in res['hits']['hits']:
             documents[hit['_id']] = hit["_source"]["TEXT"]
+
+        embedding_type = utils.select_embedding_type()
+        documents_embeddings = []
+        for hit in res['hits']['hits']:
+            doc_id = hit['_id']
+            embedding = hit["_source"][embedding_type]
+            documents_embeddings.append(embedding)
 
         reranked_docs = utils.rerank_documents(evaluation_type, documents, documents_embeddings, query, join_topics)
         print('\nRERANKED DOCUMENTS:')
