@@ -1,4 +1,4 @@
-from parsers import QueryParser, QrelsParser
+from parsers import QueryParser, QrelsParser, OracleParser
 from random import sample
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -267,26 +267,47 @@ def select_vocabulary():
 
     return options[menu_entry_index]
 
-def select_reranking_evaluation():
-    title = '\nSelect Reranking Evaluation type:'
-    options = ['No method', 'Residual Ranking', 'Frozen Ranking']
-    terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
-    menu_entry_index = terminal_menu.show()
+def select_feedback():
+    title = '\nSelect Feedback type:'
+    options_feedback = ['Pseudo Feedback', 'Explicit Feedback from Qrels', 'Explicit Feedback from Oracle']
+    terminal_menu = TerminalMenu(menu_entries=options_feedback, title=title, clear_menu_on_exit=False)
+    menu_entry_index_feedback = terminal_menu.show()
 
-    return options[menu_entry_index]
+    if menu_entry_index_feedback == 0:
+        evaluation_type = 'No method'
+    elif menu_entry_index_feedback == 1:
+        title = '\nSelect Evaluation type:'
+        options_evaluation = ['Residual Ranking', 'Frozen Ranking']
+        terminal_menu = TerminalMenu(menu_entries=options_evaluation, title=title, clear_menu_on_exit=False)
+        menu_entry_index_evaluation = terminal_menu.show()
 
-def ask_oracle(res, query):
-    qrels_parser = QrelsParser('storage/queries/robust04.qrels')
-    qrel_docs = qrels_parser.parse_qrels(query['NUM'])
+        evaluation_type = options_evaluation[menu_entry_index_evaluation]
+    else:
+        evaluation_type = 'Residual Ranking'
 
-    relevant_doc_ids = set(qrel_docs['relevant'])
+    return options_feedback[menu_entry_index_feedback], evaluation_type
 
-    # Make a deep copy to avoid modifying the original res
-    filtered_res = copy.deepcopy(res)
+def ask_oracle(res, query, feedback_type):
+    if "Qrels" in feedback_type:
+        qrels_parser = QrelsParser('storage/queries/robust04.qrels')
+        qrel_docs = qrels_parser.parse_qrels(query['NUM'])
 
-    filtered_res['hits']['hits'] = [doc for doc in filtered_res['hits']['hits'] if doc['_id'] in relevant_doc_ids]
+        relevant_doc_ids = set(qrel_docs['relevant'])
 
-    return filtered_res
+        filtered_res = copy.deepcopy(res) # Make a deep copy to avoid modifying the original res
+        filtered_res['hits']['hits'] = [doc for doc in filtered_res['hits']['hits'] if doc['_id'] in relevant_doc_ids]
+
+        return filtered_res
+
+    elif "Oracle" in feedback_type:
+        oracle_parser = OracleParser('storage/queries/robust04.oracle')
+
+        if not os.path.exists('storage/queries/robust04.oracle'):
+            oracle_parser.create_oracle('storage/queries/robust04.qrels')
+
+        oracle_docs = oracle_parser.parse_oracle(query['NUM'])
+
+        return oracle_docs
 
 def select_embedding_type():
     title = '\nSelect Embedding type:'

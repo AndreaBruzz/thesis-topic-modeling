@@ -51,13 +51,18 @@ def main():
             subset_size = 0.7
             res = utils.simulate_search(es, index, query, subset_size)
         else:
-            evaluation_type = utils.select_reranking_evaluation()
+            feedback_type, evaluation_type = utils.select_feedback()
 
-            if evaluation_type == 'No method':
-                oracle_res = res = es_helpers.search(es, index, query, 75)
+            res = es_helpers.search(es, index, query)
+
+            if feedback_type == 'Pseudo Feedback':
+                # This second call may be refactored by filtering res...
+                oracle_res = es_helpers.search(es, index, query, 75)
             else:
-                res = es_helpers.search(es, index, query)
-                oracle_res = utils.ask_oracle(res, query)
+                # Must be written better and maybe split into more functions
+                oracle_res = utils.ask_oracle(res, query, feedback_type)
+                if "Oracle" in feedback_type:
+                    oracle_res = es_helpers.search_by_id(es, index, oracle_res)
 
             ranked_docs = []
             for hit in res['hits']['hits']:
