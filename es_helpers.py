@@ -118,6 +118,15 @@ def search(es, index, query, size = 10000, evaluate=False):
 
     return res
 
+def search_by_id(es, index, ids):
+    res = es.search(index=index, body={
+        "query": {
+            "ids": {"values": ids}
+        }
+    })
+
+    return res
+
 def get_significant_words(es, index, query):
     res = es.search(index=index, body={
         "query": {
