@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 
 import os
+import random
 import re
 
 class TipsterParser:
@@ -164,3 +165,47 @@ class QrelsParser:
                             non_relevant_docs.append(doc_id)
 
             return {"relevant": relevant_docs, "non_relevant": non_relevant_docs}
+
+class OracleParser:
+    def __init__(self, oracle_file):
+        self.oracle_file = oracle_file
+        os.makedirs(os.path.dirname(oracle_file), exist_ok=True)
+
+    def parse_oracle(self, query_id):
+        oracle_result = []
+
+        with open(self.oracle_file, 'r') as file:
+            for line in file:
+                parts = line.strip().split()
+                if len(parts) == 3 and parts[0] == query_id:
+                    doc_id = parts[1]
+                    oracle_result.append(doc_id)
+
+        return oracle_result
+    
+    def create_oracle(self, qrels_file):
+        qrels = {}
+
+        with open(qrels_file, 'r') as file:
+            for line in file:
+                parts = line.strip().split()
+                if len(parts) == 4:
+                    q_id = parts[0]
+                    doc_id = parts[2]
+                    relevance = int(parts[3])
+
+                    if q_id not in qrels:
+                        qrels[q_id] = []
+
+                    if relevance == 1:
+                        qrels[q_id].append(doc_id)
+        
+        with open(self.oracle_file, 'w') as file:
+            for q_id, docs in qrels.items():
+                if len(docs) > 10:
+                    selected_docs = random.sample(docs, 10)
+                else:
+                    selected_docs = docs
+                
+                for doc in selected_docs:
+                    file.write(q_id + " " + doc + " 1" "\n")
