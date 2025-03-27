@@ -23,20 +23,20 @@ configurations = {
         },
         "mappings": {
             "properties": {
-                "DOCNO": {"type": "keyword"},
-                "TITLE": {
+                "docno": {"type": "keyword"},
+                "title": {
                     "type": "text",
                     "analyzer": "text_analyzer",
                 },
-                "TEXT": {
+                "text": {
                     "type": "text",
                     "analyzer": "text_analyzer",
                 },
-                'EMBEDDING_FULL': {
+                'embedding_full': {
                     'type': 'dense_vector',
                     "dims": 384, # specific con all-MiniLM-L6-v2
                 },
-                'EMBEDDING_TRUNC': {
+                'embedding_trunc': {
                     'type': 'dense_vector',
                     "dims": 384, # specific con all-MiniLM-L6-v2
                 }
@@ -64,20 +64,20 @@ configurations = {
         },
         "mappings": {
             "properties": {
-                "DOCNO": {"type": "keyword"},
-                "TITLE": {
+                "docno": {"type": "keyword"},
+                "title": {
                     "type": "text",
                     "analyzer": "text_analyzer",
                 },
-                "TEXT": {
+                "text": {
                     "type": "text",
                     "analyzer": "text_analyzer",
                 },
-                'EMBEDDING_FULL': {
+                'embedding_full': {
                     'type': 'dense_vector',
                     "dims": 384, # specific con all-MiniLM-L6-v2
                 },
-                'EMBEDDING_TRUNC': {
+                'embedding_trunc': {
                     'type': 'dense_vector',
                     "dims": 384, # specific con all-MiniLM-L6-v2
                 }
@@ -105,20 +105,20 @@ configurations = {
         },
         "mappings": {
             "properties": {
-                "DOCNO": {"type": "keyword"},
-                "TITLE": {
+                "docno": {"type": "keyword"},
+                "title": {
                     "type": "text",
                     "analyzer": "text_analyzer",
                 },
-                "TEXT": {
+                "text": {
                     "type": "text",
                     "analyzer": "text_analyzer",
                 },
-                'EMBEDDING_FULL': {
+                'embedding_full': {
                     'type': 'dense_vector',
                     "dims": 384, # specific con all-MiniLM-L6-v2
                 },
-                'EMBEDDING_TRUNC': {
+                'embedding_trunc': {
                     'type': 'dense_vector',
                     "dims": 384, # specific con all-MiniLM-L6-v2
                 }

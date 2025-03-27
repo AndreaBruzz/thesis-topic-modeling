@@ -100,7 +100,7 @@ def simulate_search(es, index, query, subset_size):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
     qrels = qrels_parser.parse_qrels()
 
-    document_ids = qrels[query['NUM']]
+    document_ids = qrels[query['num']]
 
     document_ids = sample(document_ids, int(len(document_ids) * subset_size))
 
@@ -144,11 +144,11 @@ def topic_from_vector(id2word, vector, topk):
 
 def rerank_documents(evaluation_type, ranked_docs, oracle_docs, documents, documents_embeddings, query, topics):
     qrels_parser = QrelsParser('storage/queries/robust04.qrels')
-    qrel_docs = qrels_parser.parse_qrels(query['NUM'])
+    qrel_docs = qrels_parser.parse_qrels(query['num'])
 
     documents_id = list(documents.keys())
 
-    query_embedding = embed_text(query['TITLE'])
+    query_embedding = embed_text(query['title'])
     topic_embeddings = embed_text(topics)
 
     # Quanto un topic è relativo alla query
@@ -301,7 +301,7 @@ def select_feedback():
 def ask_oracle(res, query, feedback_type):
     if "Qrels" in feedback_type:
         qrels_parser = QrelsParser('storage/queries/robust04.qrels')
-        qrel_docs = qrels_parser.parse_qrels(query['NUM'])
+        qrel_docs = qrels_parser.parse_qrels(query['num'])
 
         relevant_doc_ids = set(qrel_docs['relevant'])
 
@@ -316,13 +316,13 @@ def ask_oracle(res, query, feedback_type):
         if not os.path.exists('storage/queries/robust04.oracle'):
             oracle_parser.create_oracle('storage/queries/robust04.qrels')
 
-        oracle_docs = oracle_parser.parse_oracle(query['NUM'])
+        oracle_docs = oracle_parser.parse_oracle(query['num'])
 
         return oracle_docs
 
 def select_embedding_type():
     title = '\nSelect Embedding type:'
-    options = ['EMBEDDING_FULL', 'EMBEDDING_TRUNC']
+    options = ['embedding_full', 'embedding_trunc']
     terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
     menu_entry_index = terminal_menu.show()
 

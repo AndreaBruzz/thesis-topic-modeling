@@ -52,37 +52,37 @@ def create_index(es, index, delete = False):
 def index_documents(es, index, documents):
     for doc in documents:
         try:
-            es.index(index=index, id=doc['DOCNO'], document={
-                'DOCNO': doc['DOCNO'],
-                'TEXT': doc['TEXT'],
-                'TITLE': doc.get('TITLE', None),
-                'EMBEDDING_TRUNC': utils.embed_text_trunc(doc['TEXT']),
-                'EMBEDDING_FULL': utils.embed_text([doc['TEXT']], True)[0],
+            es.index(index=index, id=doc['docno'], document={
+                'docno': doc['docno'],
+                'text': doc['text'],
+                'title': doc.get('title', None),
+                'embedding_trunc': utils.embed_text_trunc(doc['text']),
+                'embedding_full': utils.embed_text([doc['text']], True)[0],
             })
-            print(f"DEBUG: Document {doc['DOCNO']} indexed")
+            print(f"DEBUG: Document {doc['docno']} indexed")
         except Exception as ex:
-            print(f"ERROR: An error occurred while indexing document {doc['DOCNO']}: {str(ex)}")
+            print(f"ERROR: An error occurred while indexing document {doc['docno']}: {str(ex)}")
 
 def bulk_index_documents(es, index, documents):
     existing_ids = set()
     for doc in documents:
-        if es.exists(index=index, id=doc['DOCNO']):
-            existing_ids.add(doc['DOCNO'])
+        if es.exists(index=index, id=doc['docno']):
+            existing_ids.add(doc['docno'])
 
         actions = [
             {
                 "_index": index,
-                "_id": doc['DOCNO'],
+                "_id": doc['docno'],
                 "_source": {
-                    'DOCNO': doc['DOCNO'],
-                    'TEXT': doc['TEXT'],
-                    'TITLE': doc.get('TITLE', None),
-                    'EMBEDDING_TRUNC': utils.embed_text_trunc(doc['TEXT']),
-                    'EMBEDDING_FULL': utils.embed_text([doc['TEXT']], True)[0],
+                    'docno': doc['docno'],
+                    'text': doc['text'],
+                    'title': doc.get('title', None),
+                    'embedding_trunc': utils.embed_text_trunc(doc['text']),
+                    'embedding_full': utils.embed_text([doc['text']], True)[0],
                 }
             }
             for doc in documents
-            if doc['DOCNO'] not in existing_ids
+            if doc['docno'] not in existing_ids
         ]
 
     try:
@@ -101,8 +101,8 @@ def search(es, index, query, size = 10000, evaluate=False):
     res = es.search(index=index, body={
         "query": {
             "multi_match": {
-                "query": query['TITLE'],
-                "fields": ["TITLE", "TEXT^2"],
+                "query": query['title'],
+                "fields": ["title", "text^2"],
                 "operator": "or",
             },
         },
@@ -114,7 +114,7 @@ def search(es, index, query, size = 10000, evaluate=False):
             for rank, hit in enumerate(res['hits']['hits'], start=1):
                 doc_id = hit['_id']
                 score = hit['_score']
-                f.write(f"{query['NUM']} Q0 {doc_id} {rank} {score} STANDARD\n")
+                f.write(f"{query['num']} Q0 {doc_id} {rank} {score} STANDARD\n")
 
     return res
 
@@ -131,8 +131,8 @@ def get_significant_words(es, index, query):
     res = es.search(index=index, body={
         "query": {
             "multi_match": {
-                "query": query['TITLE'],
-                "fields": ["TITLE", "TEXT^2"],
+                "query": query['title'],
+                "fields": ["title", "text^2"],
                 "operator": "or",
             },
         },
@@ -140,7 +140,7 @@ def get_significant_words(es, index, query):
         "aggs": {
             "significant_words": {
                 "significant_text": {
-                    "field": "TEXT",
+                    "field": "text",
                     "size": 50,
                     "filter_duplicate_text": True,
                     "exclude": [*string.printable, *get_stopwords()],
@@ -151,7 +151,7 @@ def get_significant_words(es, index, query):
         }
     })
 
-    analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['TITLE'])
+    analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['title'])
     analyzed_query_terms = []
     for bucket in analyzed_query_result['tokens']:
         analyzed_query_terms.append(bucket['token'])
@@ -167,7 +167,7 @@ def get_terms_window(es, index, query, documents_text):
     N = 11
     top_k = 50
 
-    analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['TITLE'])
+    analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['title'])
     query_terms = [bucket['token'] for bucket in analyzed_query_result['tokens']]
 
     term_scores = defaultdict(float)
@@ -194,7 +194,7 @@ def get_terms_window(es, index, query, documents_text):
     
     return [term for term, score in sorted_terms]
 
-def get_term_vectors(es, index, doc_id, field='TEXT'):
+def get_term_vectors(es, index, doc_id, field='text'):
     try:
         term_vector = es.termvectors(
             index=index,

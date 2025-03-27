@@ -40,7 +40,7 @@ class TipsterParser:
                 break
 
         if docno and text:
-            return {'DOCNO': docno, 'TITLE': title, 'TEXT': text}
+            return {'docno': docno, 'title': title, 'text': text}
         else:
             return None
 
@@ -88,28 +88,28 @@ class QueryParser:
             query_string = self.clean_extra_closing_tags(query_string)
             query_data = self.extract_query_data(query_string)
 
-            if query_data and query_data['NUM'] != 'N/A':
-                parsed_queries[query_data['NUM']] = query_data
+            if query_data and query_data['num'] != 'N/A':
+                parsed_queries[query_data['num']] = query_data
 
         return parsed_queries
     
     def extract_query_data(self, query):
         parts = re.split(r'<(num|title|desc|narr)>', query)
 
-        query_data = {'NUM': 'N/A', 'TITLE': 'N/A', 'DESC': 'N/A', 'NARR': 'N/A'}
+        query_data = {'num': 'N/A', 'title': 'N/A', 'desc': 'N/A', 'narr': 'N/A'}
 
         for i in range(1, len(parts), 2):
             tag = parts[i].strip()
             content = parts[i + 1].strip()
 
             if tag == 'num':
-                query_data['NUM'] = self.clean_label(content, 'Number:')
+                query_data['num'] = self.clean_label(content, 'Number:')
             elif tag == 'title':
-                query_data['TITLE'] = content.strip()
+                query_data['title'] = content.strip()
             elif tag == 'desc':
-                query_data['DESC'] = self.clean_label(content, 'Description:')
+                query_data['desc'] = self.clean_label(content, 'Description:')
             elif tag == 'narr':
-                query_data['NARR'] = self.clean_label(content, 'Narrative:')
+                query_data['narr'] = self.clean_label(content, 'Narrative:')
 
         return query_data
     

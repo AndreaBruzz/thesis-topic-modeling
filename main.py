@@ -75,14 +75,14 @@ def main():
 
         documents = {}
         for hit in oracle_res['hits']['hits']:
-            documents[hit['_id']] = hit["_source"]["TEXT"]
+            documents[hit['_id']] = hit["_source"]["text"]
 
         documents_text = list(documents.values())
         document_ids = list(documents.keys())
 
         oracle_docs = {}
         for hit in oracle_res['hits']['hits']:
-            oracle_docs[hit['_id']] = hit["_source"]["TEXT"]
+            oracle_docs[hit['_id']] = hit["_source"]["text"]
 
         if args.verbose:
             print('----------------------------------------')
@@ -155,7 +155,7 @@ def main():
             subset_size = 1
             res = utils.simulate_search(es, index, query, subset_size)
 
-            documents = [hit["_source"]["TEXT"] for hit in res["hits"]["hits"]]
+            documents = [hit["_source"]["text"] for hit in res["hits"]["hits"]]
 
             dataset = octis_helpers.create_dataset(documents)
 
