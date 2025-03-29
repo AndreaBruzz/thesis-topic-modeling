@@ -163,6 +163,9 @@ def get_significant_words(es, index, query):
 
     return vocabulary
 
+def chunk_text(text, size):
+    return [text[i:i + size] for i in range(0, len(text), size)]
+
 def get_terms_window(es, index, query, documents_text):
     N = 11
     top_k = 50
@@ -174,8 +177,12 @@ def get_terms_window(es, index, query, documents_text):
     stopwords_list = get_stopwords()
 
     for doc in documents_text:
-        analyzed_text = IndicesClient.analyze(es, index=index, text=doc)
-        words = [bucket['token'] for bucket in analyzed_text['tokens'] 
+        tokens = []
+        for chunk in chunk_text(doc, 10000):
+            analyzed = IndicesClient.analyze(es, index=index, text=chunk)
+            tokens.extend(analyzed['tokens'])
+
+        words = [bucket['token'] for bucket in tokens
                  if bucket['token'] not in stopwords_list and len(bucket['token']) > 2 and not any(char.isdigit() for char in bucket['token'])]
 
         for term in query_terms:
