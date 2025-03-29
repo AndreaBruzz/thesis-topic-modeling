@@ -73,31 +73,20 @@ def main():
             print('Document ranking:')
             utils.print_rank(ranked_docs)
 
-        documents = {}
+        oracle_documents = {}
         for hit in oracle_res['hits']['hits']:
-            documents[hit['_id']] = hit["_source"]["text"]
+            oracle_documents[hit['_id']] = hit["_source"]["text"]
 
-        documents_text = list(documents.values())
-        document_ids = list(documents.keys())
-
-        oracle_docs = {}
-        for hit in oracle_res['hits']['hits']:
-            oracle_docs[hit['_id']] = hit["_source"]["text"]
-
-        if args.verbose:
-            print('----------------------------------------')
-            print(f'Found {len(document_ids)} documents:')
-            print(document_ids)
-            input('Press enter to continue')
+        oracle_documents_text = list(oracle_documents.values())
 
         vocabulary = []
         selected_vocabulary = utils.select_vocabulary()
         if (selected_vocabulary == 'Terms window'):
-                vocabulary = es_helpers.get_terms_window(es, index, query, documents_text)
+                vocabulary = es_helpers.get_terms_window(es, index, query, oracle_documents_text)
         elif (selected_vocabulary == 'Significant terms'):
                 vocabulary = es_helpers.get_significant_words(es, index, query)
 
-        dataset = octis_helpers.create_dataset(documents_text, vocabulary)
+        dataset = octis_helpers.create_dataset(oracle_documents_text, vocabulary)
 
         topics = 6
         topwords = 6
@@ -146,7 +135,11 @@ def main():
             embedding = hit["_source"][embedding_type]
             documents_embeddings.append(embedding)
 
-        reranked_docs = utils.rerank_documents(evaluation_type, ranked_docs, oracle_docs, documents, documents_embeddings, query, join_topics)
+        documents = {}
+        for hit in res['hits']['hits']:
+            documents[hit['_id']] = hit["_source"]["text"]
+
+        reranked_docs = utils.rerank_documents(evaluation_type, ranked_docs, oracle_documents, documents, documents_embeddings, query, join_topics)
         print('\nRERANKED DOCUMENTS:')
         utils.print_rank(reranked_docs, ranked_docs)
 
