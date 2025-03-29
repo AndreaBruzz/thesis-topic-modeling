@@ -84,6 +84,7 @@ def main():
             oracle_documents[hit['_id']] = hit["_source"]["text"]
 
         oracle_documents_text = list(oracle_documents.values())
+        oracle_documents_id = list(oracle_documents.keys())
 
         vocabulary = []
         if args.vocab_source:
@@ -94,7 +95,7 @@ def main():
         if (selected_vocabulary == 'Terms window'):
                 vocabulary = es_helpers.get_terms_window(es, index, query, oracle_documents_text)
         elif (selected_vocabulary == 'Significant terms'):
-                vocabulary = es_helpers.get_significant_words(es, index, query)
+                vocabulary = es_helpers.get_significant_words(es, index, query, oracle_documents_id)
 
         dataset = octis_helpers.create_dataset(oracle_documents_text, vocabulary)
 

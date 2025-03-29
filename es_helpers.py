@@ -127,16 +127,14 @@ def search_by_id(es, index, ids):
 
     return res
 
-def get_significant_words(es, index, query):
+def get_significant_words(es, index, query, documents_id):
     res = es.search(index=index, body={
         "query": {
-            "multi_match": {
-                "query": query['title'],
-                "fields": ["title", "text^2"],
-                "operator": "or",
-            },
+            "terms": {
+                "_id": documents_id
+            }
         },
-        "size": 75,
+        "size": 0,
         "aggs": {
             "significant_words": {
                 "significant_text": {
@@ -144,7 +142,7 @@ def get_significant_words(es, index, query):
                     "size": 50,
                     "filter_duplicate_text": True,
                     "exclude": [*string.printable, *get_stopwords()],
-                    "min_doc_count": 5,
+                    "min_doc_count": len(documents_id) * 0.05,
                     "chi_square": {},
                 }
             }
@@ -152,13 +150,11 @@ def get_significant_words(es, index, query):
     })
 
     analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['title'])
-    analyzed_query_terms = []
-    for bucket in analyzed_query_result['tokens']:
-        analyzed_query_terms.append(bucket['token'])
+    analyzed_query_terms = [bucket['token'] for bucket in analyzed_query_result['tokens']]
 
     vocabulary = [bucket["key"] for bucket in res['aggregations']['significant_words']['buckets']]
     for term in analyzed_query_terms:
-        if not term in vocabulary:
+        if term not in vocabulary:
             vocabulary.append(term)
 
     return vocabulary
