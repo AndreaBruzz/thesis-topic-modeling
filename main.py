@@ -51,7 +51,6 @@ def main():
             input('Press enter to continue')
 
         if args.simulate:
-            # Qui prendo solo documenti rilevanti (70%)
             subset_size = 0.7
             res = utils.simulate_search(es, index, query, subset_size)
         else:
@@ -64,7 +63,6 @@ def main():
             res = es_helpers.search(es, index, query)
 
             if feedback_type == 'Pseudo Feedback':
-                # This second call may be refactored by filtering res...
                 oracle_res = es_helpers.search(es, index, query, 75)
             else:
                 # Must be written better and maybe split into more functions
