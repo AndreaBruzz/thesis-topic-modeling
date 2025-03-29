@@ -12,7 +12,11 @@ import utils
 
 def main():
     es, args = utils.setup()
-    index = utils.select_index()
+
+    if args.run_index:
+        index = args.run_index
+    else:
+        index = utils.select_index()
 
     if args.index:
         es_helpers.create_index(es, index, args.delete_index)
@@ -51,7 +55,11 @@ def main():
             subset_size = 0.7
             res = utils.simulate_search(es, index, query, subset_size)
         else:
-            feedback_type, evaluation_type = utils.select_feedback()
+            if args.feedback_method and args.evaluation_type:
+                feedback_type = args.feedback_method
+                evaluation_type = args.evaluation_type
+            else:
+                feedback_type, evaluation_type = utils.select_feedback()
 
             res = es_helpers.search(es, index, query)
 
@@ -80,7 +88,11 @@ def main():
         oracle_documents_text = list(oracle_documents.values())
 
         vocabulary = []
-        selected_vocabulary = utils.select_vocabulary()
+        if args.vocab_source:
+            selected_vocabulary = args.vocab_source
+        else:
+            selected_vocabulary = utils.select_vocabulary()
+
         if (selected_vocabulary == 'Terms window'):
                 vocabulary = es_helpers.get_terms_window(es, index, query, oracle_documents_text)
         elif (selected_vocabulary == 'Significant terms'):
@@ -101,7 +113,12 @@ def main():
         bert_helpers.evaluate_model(bert_output, dataset, topwords)
         bert_helpers.display_topics(bert_output, True)
 
-        if utils.select_model() == 'NMF':
+        if args.topic_model:
+            topic_model = args.topic_model
+        else:
+            topic_model = utils.select_model()
+
+        if  topic_model == 'NMF':
             topic_vectors = octis_helpers.get_topic_vectors(nmf_output)
             id2word = nmf_id2word
         else:
@@ -128,7 +145,11 @@ def main():
             meet_topics.append(utils.topic_from_vector(id2word, topic, topwords))
             print(utils.topic_from_vector(id2word, topic, topwords))
 
-        embedding_type = utils.select_embedding_type()
+        if args.embedding_type:
+            embedding_type = args.embedding_type
+        else:
+            embedding_type = utils.select_embedding_type()
+
         documents_embeddings = []
         for hit in res['hits']['hits']:
             doc_id = hit['_id']
