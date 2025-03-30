@@ -48,7 +48,7 @@ def evaluate_model(topic_model, dataset, topwords=5):
     for topic_id, topic in valid_topics.items():
         topics.append([word for word, _ in topic[:topwords]])
 
-    coherence_metric = Coherence(measure="c_v", topk=topwords)
+    coherence_metric = Coherence(measure="c_v", texts=dataset.get_corpus(), topk=topwords)
     coherence_metric.corpus = dataset.get_corpus()
     coherence_metric.vocabulary = dataset.get_vocabulary()
 

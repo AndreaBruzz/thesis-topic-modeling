@@ -87,8 +87,8 @@ def display_topics(nmf_output, id2word, topwords):
 
     print("\nAverage topic weights:", train_avg_weights)
 
-def evaluate_model(nmf_output, topwords=5):
-    coherence_metric = Coherence(measure='c_v', topk=topwords)
+def evaluate_model(nmf_output, dataset, topwords=5):
+    coherence_metric = Coherence(measure='c_v', texts=dataset.get_corpus(), topk=topwords)
     coherence_score = coherence_metric.score(nmf_output)
     print(f"Coherence Score: {coherence_score}")
 

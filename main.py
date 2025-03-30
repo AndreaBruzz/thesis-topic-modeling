@@ -104,7 +104,7 @@ def main():
 
         print('\n###### NMF MODEL ######\n')
         nmf_output, nmf_id2word = octis_helpers.run_nmf_model(dataset, topics, topwords)
-        octis_helpers.evaluate_model(nmf_output, topwords)
+        octis_helpers.evaluate_model(nmf_output, dataset, topwords)
         octis_helpers.display_topics(nmf_output, nmf_id2word, topwords)
 
         print('\n###### BERT MODEL ######\n')
