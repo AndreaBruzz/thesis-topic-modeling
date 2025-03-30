@@ -142,7 +142,7 @@ def get_significant_words(es, index, query, documents_id):
                     "size": 50,
                     "filter_duplicate_text": True,
                     "exclude": [*string.printable, *get_stopwords()],
-                    "min_doc_count": len(documents_id) * 0.05,
+                    "min_doc_count": max(1, int(len(documents_id) * 0.05)),
                     "chi_square": {},
                 }
             }
