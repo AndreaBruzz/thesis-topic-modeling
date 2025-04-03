@@ -32,6 +32,7 @@ def setup():
     parser.add_argument("-et", "--evaluation-type",   type=str, help="Evaluation type for reranking.")
     parser.add_argument("-em", "--embedding-type",    type=str, help="Embedding type used for re-ranking.")
     parser.add_argument("-md", "--topic-model",       type=str, help="Topic modeling method to use.")
+    parser.add_argument("-tp", "--topic-type",        type=str, help="Topic type to use for reranking.")
 
     args = parser.parse_args()
 
@@ -337,7 +338,7 @@ def select_embedding_type():
 
 def select_topics_for_reranking():
     title = '\nSelect Topics to use:'
-    options = ['Meet Topics', 'Join Topics']
+    options = ['join', 'meet']
     terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
     menu_entry_index = terminal_menu.show()
 
