@@ -32,7 +32,7 @@ def setup():
     parser.add_argument("-et", "--evaluation-type",   type=str, help="Evaluation type for reranking.")
     parser.add_argument("-em", "--embedding-type",    type=str, help="Embedding type used for re-ranking.")
     parser.add_argument("-md", "--topic-model",       type=str, help="Topic modeling method to use.")
-    parser.add_argument("-tp", "--topic-type",        type=str, help="Topic type to use for reranking.")
+    parser.add_argument("-tp", "--topics-type",        type=str, help="Topic type to use for reranking.")
 
     args = parser.parse_args()
 
