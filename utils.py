@@ -14,8 +14,6 @@ import random
 import subprocess
 
 def setup():
-    random.seed(a=754)
-
     es = es_helpers.connect_elasticsearch()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)

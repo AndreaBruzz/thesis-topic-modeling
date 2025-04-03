@@ -52,7 +52,7 @@ def create_dataset(documents, vocabulary, dataset_folder='storage/octis/dataset'
     return dataset
 
 def run_nmf_model(dataset, topics=10, topwords=5):
-    nmf_model = NMF(num_topics=topics, use_partitions=False, random_state=754)
+    nmf_model = NMF(num_topics=topics, use_partitions=False)
 
     hyperparameters = {
         'chunksize': 100,

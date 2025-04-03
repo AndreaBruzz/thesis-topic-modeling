@@ -10,7 +10,7 @@ import pandas as pd
 
 def configure_bertopic(embedding_model_name="all-MiniLM-L6-v2", topwords=5, min_cluster_size=5, n_components=15, min_dist=0.1):
     embedding_model = SentenceTransformer(embedding_model_name)
-    umap_model = UMAP(n_components=n_components, min_dist=min_dist, random_state=12)
+    umap_model = UMAP(n_components=n_components, min_dist=min_dist)
     hdbscan_model = HDBSCAN(min_cluster_size=min_cluster_size, min_samples=1)
 
     topic_model = BERTopic(
