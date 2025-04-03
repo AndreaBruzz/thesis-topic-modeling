@@ -334,3 +334,11 @@ def select_embedding_type():
     menu_entry_index = terminal_menu.show()
 
     return options[menu_entry_index]
+
+def select_topics_for_reranking():
+    title = '\nSelect Topics to use:'
+    options = ['Meet Topics', 'Join Topics']
+    terminal_menu = TerminalMenu(menu_entries=options, title=title, clear_menu_on_exit=False)
+    menu_entry_index = terminal_menu.show()
+
+    return options[menu_entry_index]

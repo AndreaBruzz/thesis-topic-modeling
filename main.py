@@ -159,7 +159,10 @@ def main():
         for hit in res['hits']['hits']:
             documents[hit['_id']] = hit["_source"]["text"]
 
-        reranked_docs = utils.rerank_documents(evaluation_type, ranked_docs, oracle_documents, documents, documents_embeddings, query, join_topics)
+        topics_type = utils.select_topics_for_reranking()
+        reranking_topics = join_topics if topics_type == 'Join Topics' else meet_topics
+
+        reranked_docs = utils.rerank_documents(evaluation_type, ranked_docs, oracle_documents, documents, documents_embeddings, query, reranking_topics)
         print('\nRERANKED DOCUMENTS:')
         utils.print_rank(reranked_docs, ranked_docs)
 
