@@ -12,8 +12,11 @@ import numpy as np
 import pandas as pd
 import random
 import subprocess
+import nltk
 
 def setup():
+    nltk.download('punkt_tab')
+
     es = es_helpers.connect_elasticsearch()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
