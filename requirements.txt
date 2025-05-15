@@ -112,3 +112,4 @@ zipp==3.21.0
 stopwordsiso
 simple_term_menu
 google-genai
+pymongo
