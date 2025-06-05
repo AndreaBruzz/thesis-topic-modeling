@@ -15,7 +15,9 @@ Return only this JSON:
 
 {{"r": 0 or 1, "n": "max 12 words to explain the choice of relevance"}}
 
-Query: {query}
+Title: {query['title']}
+Narr: {query['narr']}
+Desc: {query['desc']}
 Doc: {doc}"""
 
 def ask(doc, query, client):
