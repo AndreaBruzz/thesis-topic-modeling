@@ -97,7 +97,7 @@ def bulk_index_documents(es, index, documents):
         index_documents(es, index, documents)
         print('DEBUG: Done!')
 
-def search(es, index, query, size = 10000, evaluate=False):
+def search(es, index, query, size = 10000, evaluate=False, run_id="std"):
     res = es.search(index=index, body={
         "query": {
             "multi_match": {
@@ -110,11 +110,11 @@ def search(es, index, query, size = 10000, evaluate=False):
     })
 
     if evaluate:
-        with open('trec_eval/submition.txt', 'w') as f:
+        with open(f'trec_eval/{run_id}.txt', 'a') as f:
             for rank, hit in enumerate(res['hits']['hits'], start=1):
                 doc_id = hit['_id']
                 score = hit['_score']
-                f.write(f"{query['num']} Q0 {doc_id} {rank} {score} STANDARD\n")
+                f.write(f"{query['num']} Q0 {doc_id} {rank} {score} {run_id}\n")
 
     return res
 
