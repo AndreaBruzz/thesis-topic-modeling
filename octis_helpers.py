@@ -87,6 +87,15 @@ def display_topics(nmf_output, id2word, topwords):
 
     print("\nAverage topic weights:", train_avg_weights)
 
+def get_top_topics(nmf_output, top_n):
+    topic_document_matrix = nmf_output['topic-document-matrix']
+    dominant_counts = count_dominant_docs(topic_document_matrix)
+
+    topic_ids = np.arange(len(dominant_counts))
+    sorted_topics = sorted(zip(topic_ids, dominant_counts), key=lambda x: x[1], reverse=True)
+
+    return [topic_id for topic_id, _ in sorted_topics[:top_n]]
+
 def evaluate_model(nmf_output, dataset, topwords=5):
     coherence_metric = Coherence(measure='c_v', texts=dataset.get_corpus(), topk=topwords)
     coherence_score = coherence_metric.score(nmf_output)
