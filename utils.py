@@ -376,3 +376,18 @@ def gram_schmidt(vectors):
             orthonorm_basis.append(w / norm)
     return np.stack(orthonorm_basis)
 
+def embed_topic(topic_vector, id2word):
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+
+    indices = topic_vector.argsort()[::-1]
+    weights = topic_vector[indices]
+    words = [id2word[i] for i in indices]
+
+    # Normalize weights
+    weights = weights / np.sum(weights)
+
+    # Get word embeddings and compute weighted average
+    word_embeddings = np.array([model.encode(word) for word in words])
+    topic_embedding = np.average(word_embeddings, axis=0, weights=weights)
+
+    return topic_embedding
