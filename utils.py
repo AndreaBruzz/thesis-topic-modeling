@@ -344,3 +344,35 @@ def select_topics_for_reranking():
     menu_entry_index = terminal_menu.show()
 
     return options[menu_entry_index]
+
+def rerank_documents_v2(documents_embeddings, theme_vectors, documents, top_k = None):
+    normalized_docs = normalize(documents_embeddings, axis=1)
+
+    # Orthonormalize theme vectors
+    orthonorm_themes = gram_schmidt(theme_vectors)
+
+    # Compute projection scores
+    projection_scores = np.dot(normalized_docs, orthonorm_themes.T) ** 2
+    final_scores = np.sum(projection_scores, axis=1)  # sum over all themes
+
+    # Attach scores to document IDs and sort
+    documents_id = list(documents.keys())
+    scored_docs = [(doc_id, float(final_scores[i])) for i, doc_id in enumerate(documents_id)]
+    scored_docs = sorted(scored_docs, key=lambda x: x[1], reverse=True)
+
+    if top_k is not None:
+        scored_docs = scored_docs[:top_k]
+
+    return scored_docs
+
+def gram_schmidt(vectors):
+    orthonorm_basis = []
+    for v in vectors:
+        w = v.copy()
+        for b in orthonorm_basis:
+            w -= np.dot(w, b) * b
+        norm = np.linalg.norm(w)
+        if norm > 1e-10: 
+            orthonorm_basis.append(w / norm)
+    return np.stack(orthonorm_basis)
+
