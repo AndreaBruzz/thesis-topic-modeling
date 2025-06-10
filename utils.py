@@ -2,6 +2,7 @@ from parsers import QueryParser, QrelsParser, OracleParser
 from random import sample
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import normalize
 from simple_term_menu import TerminalMenu
 
 import argparse
