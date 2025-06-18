@@ -123,7 +123,7 @@ def main():
         print("\nPerforming reranking for all configurations...")
         for run_name, topics_vectors in all_rerank_configs:
             reranked = utils.rerank_documents_v2(
-                documents_embeddings,
+                documents_vectors,
                 topics_vectors,
                 documents=documents
             )   
