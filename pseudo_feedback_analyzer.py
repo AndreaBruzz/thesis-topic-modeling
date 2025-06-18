@@ -84,11 +84,16 @@ def main():
             top_words = [id2word[i] for i in topic_vectors[top_topic_ids.index(idx)].argsort()[-10:][::-1]]
             print(f"  Topic {idx}: {' | '.join(top_words)}")
 
-        documents_embeddings = []
-        for hit in res['hits']['hits']:
-            doc_id = hit['_id']
-            embedding = hit["_source"][args.embedding_type]
-            documents_embeddings.append(embedding)
+        documents_vectors = []
+        if args.topic_model == 'BERT':
+            for hit in res['hits']['hits']:
+                doc_id = hit['_id']
+                embedding = hit["_source"][args.embedding_type]
+                documents_vectors.append(embedding)
+        elif args.topic_model == 'NMF':
+            vectorizer = CountVectorizer(vocabulary=list(id2word.values()))
+            documents_matrix = vectorizer.fit_transform(list(documents.values()))
+            documents_vectors = documents_matrix.toarray()
 
         topic_vectors_named = [(f"t{i}", vec) for i, vec in enumerate(topic_vectors)]
 
