@@ -346,15 +346,15 @@ def select_topics_for_reranking():
 
     return options[menu_entry_index]
 
-def rerank_documents_v2(documents_embeddings, theme_vectors, documents, top_k = None):
-    normalized_docs = normalize(documents_embeddings, axis=1)
+def rerank_documents_v2(documents_vectors, theme_vectors, documents, top_k = None):
+    documents_vectors = np.array(documents_vectors)
+    theme_vectors = np.array(theme_vectors)
 
-    # Orthonormalize theme vectors
-    orthonorm_themes = gram_schmidt(theme_vectors)
+    normalized_docs = normalize(documents_vectors, axis=1)
 
     # Compute projection scores
-    projection_scores = np.dot(normalized_docs, orthonorm_themes.T) ** 2
-    final_scores = np.sum(projection_scores, axis=1)  # sum over all themes
+    projection_scores = np.dot(normalized_docs, theme_vectors.T) ** 2
+    final_scores = np.sum(projection_scores, axis=1)
 
     # Attach scores to document IDs and sort
     documents_id = list(documents.keys())
