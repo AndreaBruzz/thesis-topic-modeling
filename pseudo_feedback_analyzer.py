@@ -1,5 +1,6 @@
 from parsers import QueryParser, QrelsParser
 from itertools import combinations
+from sklearn.feature_extraction.text import CountVectorizer
 
 import es_helpers
 import octis_helpers
