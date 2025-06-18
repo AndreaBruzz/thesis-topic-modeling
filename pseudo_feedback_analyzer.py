@@ -101,26 +101,24 @@ def main():
 
         print("\nCreating single-topic reranking configurations...")
         for name, vec in topic_vectors_named:
-            embedded = utils.embed_topic(vec, id2word)
             print(f"  - single_{name}")
-            all_rerank_configs.append((f"single_{name}", [embedded]))
+            all_rerank_configs.append((f"single_{name}", [vec]))
+
 
         print("\nCreating join-topic reranking configurations...")
         for (name1, vec1), (name2, vec2) in combinations(topic_vectors_named, 2):
-            joined = operators.join(vec1, vec2)
-            embedded_basis = [utils.embed_topic(v, id2word) for v in joined]
-            run_name = f"join_{name1}_{name2}"  
+            join_vec = operators.join(vec1, vec2)
+            run_name = f"join_{name1}_{name2}"
             print(f"  - {run_name}")
-            all_rerank_configs.append((run_name, embedded_basis))
+            all_rerank_configs.append((run_name, join_vec))
 
         print("\nCreating meet-topic reranking configurations...")
         for comb in combinations(topic_vectors_named, 4):
             names, vectors = zip(*comb)
             meet_vec = operators.meet(*vectors)
-            embedded = utils.embed_topic(meet_vec, id2word)
             run_name = f"meet_{'_'.join(names)}"
             print(f"  - {run_name}")
-            all_rerank_configs.append((run_name, [embedded]))
+            all_rerank_configs.append((run_name, [meet_vec]))
 
         print("\nPerforming reranking for all configurations...")
         for run_name, topics_vectors in all_rerank_configs:
