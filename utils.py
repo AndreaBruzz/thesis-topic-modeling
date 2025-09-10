@@ -346,7 +346,7 @@ def select_topics_for_reranking():
 
     return options[menu_entry_index]
 
-def rerank_documents_v2(documents_vectors, theme_vectors, documents, top_k = None):
+def rerank_documents_v2(documents_vectors, theme_vectors, doc_ids, top_k = None):
     documents_vectors = np.array(documents_vectors)
     theme_vectors = np.array(theme_vectors)
 
@@ -357,8 +357,7 @@ def rerank_documents_v2(documents_vectors, theme_vectors, documents, top_k = Non
     final_scores = np.sum(projection_scores, axis=1)
 
     # Attach scores to document IDs and sort
-    documents_id = list(documents.keys())
-    scored_docs = [(doc_id, float(final_scores[i])) for i, doc_id in enumerate(documents_id)]
+    scored_docs = [(doc_id, float(final_scores[i])) for i, doc_id in enumerate(doc_ids)]
     scored_docs = sorted(scored_docs, key=lambda x: x[1], reverse=True)
 
     if top_k is not None:
