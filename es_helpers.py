@@ -110,11 +110,11 @@ def search(es, index, query, size = 10000, evaluate=False, run_id="std"):
     })
 
     if evaluate:
-        with open(f'trec_eval/{run_id}.txt', 'a') as f:
+        with open(f'storage/runs/{run_id}.txt', 'a') as f:
             for rank, hit in enumerate(res['hits']['hits'], start=1):
                 doc_id = hit['_id']
                 score = hit['_score']
-                f.write(f"{query['num']} Q0 {doc_id} {rank} {score} {run_id}\n")
+                f.write(f"{query['num']} Q0 {doc_id} {rank} {score} {run_id.split('/')[-1]}\n")
 
     return res
 

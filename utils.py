@@ -393,7 +393,7 @@ def embed_topic(topic_vector, id2word):
 
     return topic_embedding
 
-def write_trec_run(query_id, reranked_docs, run_name, output_dir="storage/eval"):
+def write_trec_run(query_id, reranked_docs, run_name, output_dir="storage/runs"):
     run_path = os.path.join(output_dir, f"{run_name}.run")
     with open(run_path, "a") as f:
         for rank, (doc_id, score) in enumerate(reranked_docs):
