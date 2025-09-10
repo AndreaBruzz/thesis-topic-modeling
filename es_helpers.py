@@ -163,7 +163,7 @@ def chunk_text(text, size):
     return [text[i:i + size] for i in range(0, len(text), size)]
 
 def get_terms_window(es, index, query, documents_text):
-    N = 11
+    N = 5
     top_k = 50
 
     analyzed_query_result = IndicesClient.analyze(es, index=index, text=query['title'])
