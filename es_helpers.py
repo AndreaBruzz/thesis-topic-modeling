@@ -102,7 +102,7 @@ def search(es, index, query, size = 10000, evaluate=False, run_id="std"):
         "query": {
             "multi_match": {
                 "query": query['title'],
-                "fields": ["title", "text^2"],
+                "fields": ["TITLE", "TEXT^2"],
                 "operator": "or",
             },
         },
@@ -138,7 +138,7 @@ def get_significant_words(es, index, query, documents_id):
         "aggs": {
             "significant_words": {
                 "significant_text": {
-                    "field": "text",
+                    "field": "TEXT",
                     "size": 50,
                     "filter_duplicate_text": True,
                     "exclude": [*string.printable, *get_stopwords()],
