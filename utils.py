@@ -397,3 +397,11 @@ def write_trec_run(query_id, reranked_docs, run_name, output_dir="storage/runs")
     with open(run_path, "a") as f:
         for rank, (doc_id, score) in enumerate(reranked_docs):
             f.write(f"{query_id} Q0 {doc_id} {rank + 1} {score:.4f} {run_name}\n")
+
+def pairings_of_four(items):
+    (a, b, c, d) = items
+    return [
+        ((a, b), (c, d)),
+        ((a, c), (b, d)),
+        ((a, d), (b, c)),
+    ]
