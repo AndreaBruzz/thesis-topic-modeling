@@ -84,3 +84,28 @@ def plot_topic_barchart(topic_model):
 def get_topic_vectors(topic_model):
     return topic_model.c_tf_idf_.toarray().tolist()
 
+def get_top_topics(topic_model, top_n):
+    topic_info = topic_model.get_topic_info()
+    topic_info = topic_info[topic_info["Topic"] != -1].copy()
+
+    return topic_info["Topic"].head(int(top_n)).tolist()
+
+def embed_topics(topics):
+    encoder = SentenceTransformer("all-MiniLM-L6-v2")
+    topic_embeds = {}
+
+    for tid, ww in topics.items():
+        if not ww:
+            continue
+        words = [w for w, _ in ww]
+        E = encoder.encode(words, convert_to_numpy=True)
+        v = E.mean(axis=0)
+
+        topic_embeds[tid] = v.astype(np.float32)
+
+    return topic_embeds
+
+def topic_to_text(topic_tuples):
+    words = [w for w, _ in topic_tuples]
+
+    return " ".join(words)
