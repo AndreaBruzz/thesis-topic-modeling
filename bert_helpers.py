@@ -1,6 +1,6 @@
 from bertopic import BERTopic
 from gensim.corpora import Dictionary
-from hdbscan import HDBSCAN
+from sklearn.cluster import KMeans
 from octis.evaluation_metrics.coherence_metrics import Coherence
 from octis.evaluation_metrics.diversity_metrics import TopicDiversity
 from sentence_transformers import SentenceTransformer
@@ -8,28 +8,28 @@ from umap import UMAP
 
 import pandas as pd
 
-def configure_bertopic(embedding_model_name="all-MiniLM-L6-v2", topwords=5, min_cluster_size=5, n_components=15, min_dist=0.1):
+def configure_bertopic(embedding_model_name="all-MiniLM-L6-v2", topwords=5, topics=51):
     embedding_model = SentenceTransformer(embedding_model_name)
-    umap_model = UMAP(n_components=n_components, min_dist=min_dist)
-    hdbscan_model = HDBSCAN(min_cluster_size=min_cluster_size, min_samples=1)
+    umap_model = UMAP()
+    cluster_model = KMeans(n_clusters=topics)
 
     topic_model = BERTopic(
         top_n_words=topwords,
         embedding_model=embedding_model,
         umap_model=umap_model,
-        hdbscan_model=hdbscan_model,
+        hdbscan_model=cluster_model,
     )
 
     return topic_model
 
-def run_bertopic_model(topwords=5, documents=None):
+def run_bertopic_model(topwords=5, topics=5, documents=None):
     if not documents:
         file_path = 'storage/octis/running_dataset/corpus.tsv'
         column_names = ['document', 'label']
         df = pd.read_csv(file_path, sep='\t', header=None, names=column_names)
         documents = df['document'].tolist()
 
-    topic_model = configure_bertopic(topwords=topwords)
+    topic_model = configure_bertopic(topwords=topwords, topics=topics)
     topic_model.fit_transform(documents)
 
     id2word = topic_model.vectorizer_model.get_feature_names()
