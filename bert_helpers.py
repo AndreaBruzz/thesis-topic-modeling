@@ -81,11 +81,6 @@ def plot_topic_barchart(topic_model):
     fig = topic_model.visualize_barchart()
     fig.write_html("storage/plots/bert/barchart.html")
 
-def get_topic_vectors(bert_output):
-    topic_vectors = []
-    dense_c_tf_idf = bert_output.c_tf_idf_.toarray()
+def get_topic_vectors(topic_model):
+    return topic_model.c_tf_idf_.toarray().tolist()
 
-    for row in dense_c_tf_idf[1:]:
-        topic_vectors.append(row)
-
-    return topic_vectors
