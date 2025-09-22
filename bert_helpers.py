@@ -7,6 +7,7 @@ from sentence_transformers import SentenceTransformer
 from umap import UMAP
 
 import pandas as pd
+import numpy as np
 
 def configure_bertopic(embedding_model_name="all-MiniLM-L6-v2", topwords=5, topics=51):
     embedding_model = SentenceTransformer(embedding_model_name)
