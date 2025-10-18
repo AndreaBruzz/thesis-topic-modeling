@@ -346,7 +346,7 @@ def select_topics_for_reranking():
 
     return options[menu_entry_index]
 
-def rerank_documents_v2(documents_vectors, theme_vectors, doc_ids, top_k = None):
+def rerank_documents_v2(documents_vectors, theme_vectors, doc_ids, top_k=None, evaluation_type=None, ranked_docs=None, oracle_docs=None, query_num=None):
     documents_vectors = np.array(documents_vectors)
     theme_vectors = np.array(theme_vectors)
 
@@ -359,6 +359,29 @@ def rerank_documents_v2(documents_vectors, theme_vectors, doc_ids, top_k = None)
     # Attach scores to document IDs and sort
     scored_docs = [(doc_id, float(final_scores[i])) for i, doc_id in enumerate(doc_ids)]
     scored_docs = sorted(scored_docs, key=lambda x: x[1], reverse=True)
+
+    if evaluation_type == 'Residual Ranking':
+        if query_num is not None:
+            qrels_parser = QrelsParser('storage/queries/robust04.qrels')
+            qrel_docs = qrels_parser.parse_qrels(query_num)
+            scored_docs = residual_ranking(scored_docs, qrel_docs)
+
+    elif evaluation_type == 'Frozen Ranking':
+        if ranked_docs is not None and oracle_docs is not None:
+            docs_scores = dict(scored_docs)
+            oracle_docs_ids = list(oracle_docs.keys())
+
+            non_frozen_reranked = [item for item in scored_docs if item[0] not in oracle_docs_ids]
+            non_frozen_iter = iter(non_frozen_reranked)
+
+            final_ranking = []
+            for doc_id, _ in ranked_docs:
+                if doc_id in oracle_docs_ids:
+                    final_ranking.append((doc_id, docs_scores[doc_id]))
+                else:
+                    final_ranking.append(next(non_frozen_iter))
+
+            scored_docs = final_ranking
 
     if top_k is not None:
         scored_docs = scored_docs[:top_k]
