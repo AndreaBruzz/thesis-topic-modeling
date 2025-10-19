@@ -40,8 +40,16 @@ def main():
     queries = query_parser.parse_queries()
 
     if not args.tune:
-        # --- Pick 1 random query ---
-        query = random.choice(list(queries.values()))
+        # --- Pick selected query, a random one otherwise  ---
+        if args.query:
+            try:
+                query = queries[args.query]
+            except KeyError:
+                print(f"Query number '{args.query}' not valid. Check your topics collection to find an existing ID.")
+                sys.exit()
+        else:
+            query = random.choice(list(queries.values()))
+
         print("\n==========================================================")
         print(f"Processing query: {query['num']} - {query['title']}")
         print("==========================================================\n")

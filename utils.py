@@ -29,6 +29,7 @@ def setup():
     parser.add_argument("-t", "--tune", action="store_true", help="Find best parameters for each qrel")
 
     parser.add_argument("-ri", "--run-index",         type=str, help="Name of the index to run experiments against.")
+    parser.add_argument("-qn",  "--query-num",             type=str, help="Number of the query to perform")
     parser.add_argument("-fm", "--feedback-method",   type=str, help="Feedback method to use.")
     parser.add_argument("-vc", "--vocab-source",      type=str, help="Vocabulary source for topic modeling.")
     parser.add_argument("-et", "--evaluation-type",   type=str, help="Evaluation type for reranking.")
